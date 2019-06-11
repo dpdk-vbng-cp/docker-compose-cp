@@ -30,7 +30,8 @@ services:
     depends_on:
       - "redis"
     volumes:
-      - ${PWD}/accel-ppp.conf:/etc/accel-ppp.conf
+      - /sbin/modprobe:/sbin/modprobe
+      - ./config/accel-pppd/etc/accel-ppp.conf:/etc/accel-ppp.conf
   telnet_downlink:
     build: ./telnet
     networks:
