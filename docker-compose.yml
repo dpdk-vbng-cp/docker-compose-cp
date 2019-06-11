@@ -1,0 +1,47 @@
+version: '3'
+services:
+  pdk-ip-pipeline-cli:
+    build: ./bng-utils/dpdk-ip-pipeline-cli
+    command: [ "--redis-host", "redis", "--redis-port", "6379", "--telnet-host-uplink", "telnet_uplink", "--telnet-port-uplink", "23", "--telnet-host-downlink", "telnet_downlink", "--telnet-port-downlink", "23" ]
+    depends_on:
+      - "redis"
+      - "telnet_downlink"
+      - "telnet_uplink"
+      - "accel-pppd"
+    networks:
+      - 0_default_network
+  redis:
+    image: "redis"
+    ports:
+      - "6379:6379"
+    networks:
+      - 0_default_network
+  accel-pppd:
+    build: ./docker-accel-ppp/accel-pppd
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - "/dev/ppp:/dev/ppp"
+    ports:
+      - "2000-2001:2000-2001"
+    networks:
+      - 0_default_network
+      - 1_accel_network
+    depends_on:
+      - "redis"
+    volumes:
+      - ${PWD}/accel-ppp.conf:/etc/accel-ppp.conf
+  telnet_downlink:
+    build: ./telnet
+    networks:
+      - 0_default_network
+  telnet_uplink:
+    build: ./telnet
+    networks:
+      - 0_default_network
+
+networks:
+  0_default_network:
+    driver: bridge
+  1_accel_network:
+    driver: bridge
