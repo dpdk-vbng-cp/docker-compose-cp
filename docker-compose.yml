@@ -1,6 +1,6 @@
 version: '3'
 services:
-  pdk-ip-pipeline-cli:
+ dpdk-ip-pipeline-cli:
     build: ./bng-utils/dpdk-ip-pipeline-cli
     command: [ "--redis-host", "redis", "--redis-port", "6379", "--telnet-host-uplink", "telnet_uplink", "--telnet-port-uplink", "23", "--telnet-host-downlink", "telnet_downlink", "--telnet-port-downlink", "23" ]
     depends_on:

@@ -18,7 +18,7 @@ Docker compose create the control plane  docker environment:
                                        |
                                +-------+------------+
                                |                    |
-                               | pdk-ip-pipeline-cli|
+                               |dpdk-ip-pipeline-cli|
                                |                    |
                                +--------+-----------+
                                         |
@@ -35,11 +35,11 @@ git submodule update --init
 ```
 Run environment
 ```
-docker-compose run --build
+docker-compose up --build
 ```
 Stop environment:
 ```
-docker-compose stop
+docker-compose down
 ```
 Delete docker container:
 ```
