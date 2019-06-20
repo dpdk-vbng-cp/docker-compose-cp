@@ -11,14 +11,14 @@ services:
     networks:
       - 0_default_network
     restart: always
-  redis:
+ redis:
     image: "redis"
     ports:
       - "6379:6379"
     networks:
       - 0_default_network
     restart: always
-  accel-pppd:
+ accel-pppd:
     build: ./docker-accel-ppp/accel-pppd
     cap_add:
       - NET_ADMIN
@@ -35,12 +35,12 @@ services:
     volumes:
       - /sbin/modprobe:/sbin/modprobe
       - ./config/accel-pppd/etc/accel-ppp.conf:/etc/accel-ppp.conf
-  telnet_downlink:
+ telnet_downlink:
     build: ./telnet
     networks:
       - 0_default_network
     restart: always
-  telnet_uplink:
+ telnet_uplink:
     build: ./telnet
     networks:
       - 0_default_network
