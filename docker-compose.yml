@@ -29,12 +29,15 @@ services:
     networks:
       - 0_default_network
       - 1_accel_network
+    mac_address: 00:00:00:01:00:00
     restart: always
     depends_on:
       - "redis"
     volumes:
       - /sbin/modprobe:/sbin/modprobe
       - ./config/accel-pppd/etc/accel-ppp.conf:/etc/accel-ppp.conf
+    environment:
+      - IFACE=eth1
  telnet_downlink:
     build: ./telnet
     networks:
