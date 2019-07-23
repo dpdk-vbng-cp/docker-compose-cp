@@ -38,6 +38,7 @@ services:
       - ./config/accel-pppd/etc/accel-ppp.conf:/etc/accel-ppp.conf
     environment:
       - IFACE=eth1
+      - OUTER_TAG=700
  telnet_downlink:
     build: ./telnet
     networks:
