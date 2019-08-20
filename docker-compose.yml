@@ -39,7 +39,9 @@ services:
     environment:
       - IFACE=eth1
       - OUTER_PROTO=802.1Q
-      - OUTER_TAG=700
+        #- OUTER_PROTO=802.1ad
+        #- OUTER_TAG=700
+      - OUTER_TAG=7
       - INNER_PROTO=802.1Q
  telnet_downlink:
     build: ./telnet
