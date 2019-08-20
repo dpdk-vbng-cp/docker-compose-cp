@@ -41,6 +41,29 @@ services:
       - OUTER_PROTO=802.1Q
       - OUTER_TAG=700
       - INNER_PROTO=802.1Q
+ collectd:
+   image: fr3nd/collectd
+   privileged: true
+   network_mode: host
+   volumes:
+      - ./config/etc/collectd/accel-ppp.conf:/etc/collectd/accel-ppp.conf
+      - ./config/etc/collectd.conf:/etc/collectd.conf
+      - ./config/usr/lib64/collectd/accel-ppp.py:/usr/lib64/collectd/accel-ppp.py
+ influxdb:
+  image: influxdb:1.4
+  ports:
+      - "8086:8086"
+      - "25826:25826/udp"
+  volumes:
+      - ./config/influxdb/usr/share/collectd/types.db:/usr/share/collectd/types.db
+      - ./config/influxdb/etc/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf
+ grafana:
+    image: grafana/grafana:5.1.1
+    user: "root"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config/grafana/etc/grafana/grafana.ini:/etc/grafana/grafana.ini
  telnet_downlink:
     build: ./telnet
     networks:
