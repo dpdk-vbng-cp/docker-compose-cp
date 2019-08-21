@@ -63,7 +63,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./config/grafana/etc/grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ./config/grafana/etc/grafana/:/etc/grafana/
  telnet_downlink:
     build: ./telnet
     networks:
