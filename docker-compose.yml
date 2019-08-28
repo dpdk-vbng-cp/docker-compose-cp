@@ -46,9 +46,10 @@ services:
    privileged: true
    network_mode: host
    volumes:
-      - ./config/collectd/etc/collectd.d/accel-ppp.conf:/etc/collectd.d/accel-ppp.conf
+      - ./config/collectd/etc/collectd.d/python.conf:/etc/collectd.d/python.conf
       - ./config/collectd/etc/collectd/collectd.conf:/etc/collectd/collectd.conf
       - ./config/collectd/usr/lib64/collectd/accel-ppp.py:/usr/lib64/collectd/accel-ppp.py
+      - ./config/collectd/usr/lib64/collectd/dpdk-pipeline.py:/usr/lib64/collectd/dpdk-pipeline.py
  influxdb:
   image: influxdb:1.4
   ports:
