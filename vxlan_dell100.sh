@@ -6,7 +6,8 @@ set -x
 VXLAN_ID=200
 VXLAN_IFACE=vxlan$VXLAN_ID
 LOCAL=172.16.248.198
-REMOTE=172.16.248.83
+REMOTE=172.16.248.139
+i
 DOCKER_BR=br-$(docker network ls -fname=dockercomposecp_1_accel_network -q)
 # Uncomment the below instruction to use control traffic split at the client end.
 #REMOTE=172.16.248.151
