@@ -27,8 +27,9 @@ services:
     ports:
       - "2000-2001:2000-2001"
     networks:
-      - 0_default_network
-      - 1_accel_network
+      0_default_network:
+        ipv4_address: 110.110.0.5
+      1_accel_network: null
     mac_address: 00:00:00:01:00:00
     restart: always
     depends_on:
@@ -41,6 +42,20 @@ services:
       - OUTER_PROTO=802.1Q
       - OUTER_TAG=700
       - INNER_PROTO=802.1Q
+ freeradius:
+   image: freeradius/freeradius-server
+   ports:
+      - 1812-1813:1812-1813/udp
+      - 18120:18120/udp
+   depends_on:
+      - accel-pppd
+   networks:
+     0_default_network:
+       ipv4_address: 110.110.0.7
+   volumes:
+      - ./config/freeradius/etc/raddb/clients.conf:/etc/raddb/clients.conf:Z
+      - ./config/freeradius/etc/raddb/mods-config/files/authorize:/etc/raddb/mods-config/files/authorize:Z
+   command: -X
  collectd:
    image: fr3nd/collectd
    privileged: true
@@ -79,5 +94,8 @@ services:
 networks:
   0_default_network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 110.110.0.0/16
   1_accel_network:
     driver: bridge
