@@ -27,8 +27,9 @@ services:
     ports:
       - "2000-2001:2000-2001"
     networks:
-      - 0_default_network
-      - 1_accel_network
+      0_default_network:
+        ipv4_address: 110.110.0.5
+      1_accel_network: null
     mac_address: 00:00:00:01:00:00
     restart: always
     depends_on:
@@ -41,6 +42,44 @@ services:
       - OUTER_PROTO=802.1Q
       - OUTER_TAG=700
       - INNER_PROTO=802.1Q
+ freeradius:
+   image: freeradius/freeradius-server
+   ports:
+      - 1812-1813:1812-1813/udp
+      - 18120:18120/udp
+   depends_on:
+      - accel-pppd
+   networks:
+     0_default_network:
+       ipv4_address: 110.110.0.7
+   volumes:
+      - ./config/freeradius/etc/raddb/clients.conf:/etc/raddb/clients.conf:Z
+      - ./config/freeradius/etc/raddb/mods-config/files/authorize:/etc/raddb/mods-config/files/authorize:Z
+   command: -X
+ collectd:
+   image: fr3nd/collectd
+   privileged: true
+   network_mode: host
+   volumes:
+      - ./config/collectd/etc/collectd.d/python.conf:/etc/collectd.d/python.conf
+      - ./config/collectd/etc/collectd/collectd.conf:/etc/collectd/collectd.conf
+      - ./config/collectd/usr/lib64/collectd/accel-ppp.py:/usr/lib64/collectd/accel-ppp.py
+      - ./config/collectd/usr/lib64/collectd/dpdk-pipeline.py:/usr/lib64/collectd/dpdk-pipeline.py
+ influxdb:
+  image: influxdb:1.4
+  ports:
+      - "8086:8086"
+      - "25826:25826/udp"
+  volumes:
+      - ./config/influxdb/usr/share/collectd/types.db:/usr/share/collectd/types.db
+      - ./config/influxdb/etc/influxdb/influxdb.conf:/etc/influxdb/influxdb.conf
+ grafana:
+    image: grafana/grafana:5.1.1
+    user: "root"
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config/grafana/etc/grafana/:/etc/grafana/
  telnet_downlink:
     build: ./telnet
     networks:
@@ -55,5 +94,8 @@ services:
 networks:
   0_default_network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 110.110.0.0/16
   1_accel_network:
     driver: bridge
