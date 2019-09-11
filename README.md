@@ -28,28 +28,42 @@ Docker compose creates the control plane docker environment:
                        | telnet_uplink  |   | telnet_downlink|
                        +----------------+   +----------------+     
 ```
-To build the setup-environment, we need both the docker environment and also the accel-ppp setup.
-The below steps lets you create the controlplane.
-## Step 1
-First clone the accel-ppp repo and build the accel-ppp environment for  docker-compose
-```
-git clone https://github.com/dpdk-vbng-cp/docker-accel-ppp
-```
-After cloning the repo follow the steps mentioned in the README of the "docker-accel-ppp" repo to create the build environment. 
+## Prerequisits
 
-## Step 2
-Clone the docker-compose repo and install the submodules
+Presently the Control plane is implemented in a Docker-compose environment. So to deploy the Control Plane we need some modules and packeges as the prerequisits for installing Control plane.
+1. Require 'docker' and 'docker-compose' 
+```
+apt install docker.io
+apt install docker-compose
+```
+For more information about 'docker' and 'docker-compose' please follow the below link:
+
+https://docs.docker.com/get-started/
+https://docs.docker.com/compose/gettingstarted/
+
+2. Require 'redis' module
+```
+pip3 install redis
+```
+For more information on 'redis' follow the below link:
+
+https://redis.io/topics/quickstart 
+
+## Deplying Control plane
+
+The below steps lets you create the controlplane.
+### Step 1
+
 ```
 git clone https://github.com/dpdk-vbng-cp/docker-compose-cp.git
+cd docker-compose-cp
 ```
 ### Run environment
 Update submodule:
 ```
 git submodule update --init
-```
-copy the accel-ppp files from the "Step 1"
-```
-rsync -r docker-accel-ppp/ docker-compose-cp/docker-accel-ppp/
+cd docker-accel-ppp
+make
 ```
 Create the containers and make them running
 ```
@@ -59,23 +73,19 @@ Stop environment:
 ```
 docker-compose stop
 ```
-Delete docker container:
+Delete docker containers:
 ```
 docker-compose rm
 ```
-create vxlan to connect either the dataplane or the load generator. Depends if you want to use the PF_INIT split senario or splited traffic at the client side senario.
+### Step 2
+create vxlan to connect the control plane and Dataplane.
 ```
-./vxlan_dell100.sh
+./vxlan_CP-DP.sh
 ```
-## Step 3
-
+### Step 3
 
 To see the debug output of the dpdk-ip-pipeline CLI installing forwarding rules in the UL_VF and the DL_VF:
-Start the bngs in the dataplane and then follow the below commands before starting the "pppd" client in the load generator.
 ```
-cd /root/docker-compose-cp/bng-utils/dpdk-ip-pipeline-cli
-
-python3 dpdk-ip-pipeline-cli.py   --redis-host localhost --redis-port 6379 --telnet-host-uplink smicro-unten.labor2.bisdn.de --telnet-port-uplink 8094 
---telnet-host-downlink smicro-unten.labor2.bisdn.de --telnet-port-downlink 8086
-
+docker logs -f dockercomposecp_dpdk-ip-pipeline-cli_1 
 ```
+
