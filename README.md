@@ -103,7 +103,7 @@ docker logs -f dockercomposecp_dpdk-ip-pipeline-cli_1
 ```
 # Vagrant Box Deployment
 
-This repo contains a vagrant folder to setup the full docker-compose control plane in a virtual machine. To star this, just run:
+This repo contains a vagrant folder to setup the full docker-compose control plane in a virtual machine. To start this, just run:
 
 ```
 cd vagrant
