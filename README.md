@@ -38,14 +38,14 @@ Currently the control plane is installed on an Ubuntu platform.
 
 ## Prerequisits
 
-Presently the control plane is implemented in a Docker-compose environment. So to deploy the control plane we need some modules and packeges as the prerequisits for installing the control plane.
+Currently the control plane is implemented in a Docker-compose environment. So to deploy the control plane we need some modules and packages as the prerequisits.
 1. Install 'docker' and 'docker-compose'
 ```
 sudo apt update
 sudo apt install -y docker-compose docker.io python3-pip
-sudo usermod -a -G docker <groupname>
+sudo usermod -a -G docker <username>
 ```
-We create the usergroup for 'docker', else we require to start everytime with root as 'docker'
+We add <user> to the 'docker' group, else we require to start everytime with root as 'docker'
 uses the 'Unix Socket'.
 For more information about 'docker' and 'docker-compose' please follow the below link:
 
@@ -53,7 +53,7 @@ https://docs.docker.com/get-started/
 
 https://docs.docker.com/compose/gettingstarted/
 
-2. Require 'redis' module
+2. Install 'redis' module
 ```
 pip3 install redis
 ```
@@ -91,19 +91,20 @@ Delete docker containers:
 docker-compose rm
 ```
 ### Connecting CP and DP
-create vxlan to connect the control plane and dataplane.
+Create vxlan to connect the control plane and data plane.
 ```
 ./vxlan_CP-DP.sh
 ```
-### Debug output and logs to check the correct rules, written in the UL and DL VFs
+### Debug output
 
 To see the debug output of the dpdk-ip-pipeline CLI installing forwarding rules in the UL_VF and the DL_VF:
+
 ```
 docker logs -f dockercomposecp_dpdk-ip-pipeline-cli_1
 ```
 # Vagrant Box Deployment
 
-This repo contains a vagrant folder to setup the full docker-compose control plane in a virtual machine. To start this, just run:
+This repo contains a vagrant folder to setup the full docker-compose the control plane in a virtual machine. To start this, just run:
 
 ```
 cd vagrant
