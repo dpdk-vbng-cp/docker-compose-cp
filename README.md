@@ -45,8 +45,7 @@ sudo apt update
 sudo apt install -y docker-compose docker.io python3-pip
 sudo usermod -a -G docker <username>
 ```
-We add <user> to the 'docker' group, else we require to start everytime with root as 'docker'
-uses the 'Unix Socket'.
+We need to add our user to the docker group to allow it access to the docker socket, which is required to use all docker commands.
 For more information about 'docker' and 'docker-compose' please follow the below link:
 
 https://docs.docker.com/get-started/
