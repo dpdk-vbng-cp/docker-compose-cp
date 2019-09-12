@@ -101,7 +101,7 @@ To see the debug output of the dpdk-ip-pipeline CLI installing forwarding rules 
 ```
 docker logs -f dockercomposecp_dpdk-ip-pipeline-cli_1
 ```
-# Vagrant Box deployment
+# Vagrant Box Deployment
 
 In the cloned git repo "docker-compose-cp", there is vagrant set up which can fire up the CP right away.
 
