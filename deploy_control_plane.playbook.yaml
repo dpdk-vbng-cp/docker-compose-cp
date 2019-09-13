@@ -1,0 +1,37 @@
+---
+- hosts: all
+  tasks:
+  - name: update apt cache and install required packages
+    become: yes
+    apt:
+      name:
+        - aptitude
+        - docker-compose
+        - docker.io
+        - python3-pip
+
+  - name: "add the user {{ ansible_user_id }} to the group 'docker'"
+    become: yes
+    user:
+      name: "{{ ansible_user_id }}"
+      groups: docker
+      append: yes
+
+  - name: install the python3 redis module
+    pip:
+      name: redis
+      executable: pip3
+
+  - name: clone docker-compose-cp git repo including all submodules
+    git:
+      repo: 'https://github.com/dpdk-vbng-cp/docker-compose-cp.git'
+      dest: ~/docker-compose-cp
+
+  - name: build the accel-ppp module
+    make:
+      chdir: ~/docker-compose-cp/docker-accel-ppp
+      target: build
+
+  - name: start containerized control plane with docker-compose
+    docker_compose:
+      project_src: ~/docker-compose-cp
