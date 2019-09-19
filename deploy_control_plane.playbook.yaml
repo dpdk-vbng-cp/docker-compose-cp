@@ -3,6 +3,7 @@
   tasks:
   - name: update apt cache and install required packages
     become: yes
+    become_method: sudo
     apt:
       name:
         - aptitude
@@ -26,6 +27,12 @@
     git:
       repo: 'https://github.com/dpdk-vbng-cp/docker-compose-cp.git'
       dest: ~/docker-compose-cp
+      force: yes
+
+  - name: generate docker-compose.yml config for WFS/local-lab setup
+    template:
+      src: "docker-compose.j2"
+      dest: ~/docker-compose-cp/docker-compose.yml
 
   - name: build the accel-ppp module
     make:
