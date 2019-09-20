@@ -27,11 +27,10 @@
     git:
       repo: 'https://github.com/dpdk-vbng-cp/docker-compose-cp.git'
       dest: ~/docker-compose-cp
-      force: yes
 
   - name: generate docker-compose.yml config for WFS/local-lab setup
     template:
-      src: "docker-compose.j2"
+      src: docker-compose.j2
       dest: ~/docker-compose-cp/docker-compose.yml
 
   - name: build the accel-ppp module
@@ -42,3 +41,14 @@
   - name: start containerized control plane with docker-compose
     docker_compose:
       project_src: ~/docker-compose-cp
+
+  - name: update the vxlan connectivity script
+    template:
+      src: vxlan_CP-DP.j2
+      dest: ~/docker-compose-cp/vxlan_CP-DP.sh
+
+  - name: creating vxlan interface and connecting data plane
+    become: yes
+    command: sh /home/"{{ ansible_user_id }}"/docker-compose-cp/vxlan_CP-DP.sh
+#    args:
+#      chdir: ~/docker-compose-cp
