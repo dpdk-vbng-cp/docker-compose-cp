@@ -141,11 +141,12 @@ sudo vi /etc/ansible/hosts
 add your specific hostnames and variables for your target machine. Here is an example of how the file looks like. You can use your own inventory for ansible_playbook as well.
 ```
 [servers]
-<hostname1> ansible_host=xx.xx.xx.xx (ip of your host) hostname_dataplane=<hostname of your data plane 1>
+<target hostname1> ansible_host=xx.xx.xx.xx (ip of your target host) hostname_dataplane=<hostname of your data plane 1> dataplane_ip=<xx.xx.xx.xx>
 #server3 ansible_host=203.0.113.113
 
 [servers:vars]
 dataplane_uplink_port1=<port number of uplink>
+dataplane_downlink_port1=<port number of uplink>
 ```
 
 if multiple hosts need to be targeted, then this file needs to be updated with the hostnames and the IP addresses of the new servers, along with the required relevant variables
