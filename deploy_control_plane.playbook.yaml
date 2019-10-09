@@ -154,7 +154,7 @@
   - name: "attach {{ veth_iface }} to {{ docker_br }}"
     become: yes
     command: "brctl addif {{ docker_br }} {{ veth_iface }}"
-    when: veth_iface_attached_to_bridge if failed
+    when: veth_iface_attached_to_bridge is failed
 
   - name: "check if {{ veth_peer }} is attached to {{ bridge_to_cps }}"
     shell: "brctl show {{ bridge_to_cps }} | grep {{ veth_peer }}"
@@ -164,7 +164,7 @@
   - name: "attach {{ veth_peer }} to {{ bridge_to_cps }}"
     become: yes
     command: "brctl addif {{ bridge_to_cps }} {{ veth_peer }}"
-    when: veth_peer_attached_to_bridge if failed
+    when: veth_peer_attached_to_bridge is failed
 
   - name: "check if {{ vxlan_iface }} is attached to {{ bridge_to_cps }}"
     shell: "brctl show {{ bridge_to_cps }} | grep {{ vxlan_iface }}"
@@ -174,4 +174,4 @@
   - name: "attach {{ vxlan_iface }} to {{ bridge_to_cps }}"
     become: yes
     command: "brctl addif {{ bridge_to_cps }} {{ vxlan_iface }}"
-    when: vxlan_iface_attached_to_bridge if failed
+    when: vxlan_iface_attached_to_bridge is failed
