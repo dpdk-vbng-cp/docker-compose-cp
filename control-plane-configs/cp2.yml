@@ -13,7 +13,7 @@
 - telnet_port: 4000
 - tcp_port: 4001
 - dataplane_ip: 172.16.248.113
-- dataplane_uplink_port: 8094
+- dataplane_uplink_port: 8095
 - dataplane_downlink_port: 8087
 - interface_range: {2001..4094}
 - vxlan_id: 200
