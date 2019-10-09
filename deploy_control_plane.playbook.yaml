@@ -65,6 +65,8 @@
     git:
       repo: 'https://github.com/dpdk-vbng-cp/docker-compose-cp.git'
       dest: "{{ repo_clone_target }}"
+      recursive: yes
+      track_submodules: yes
 
   - name: "copy control plane git repo for specific modification for {{ cp_name }}"
     copy:
