@@ -105,7 +105,7 @@
       nocache: yes
 
   - name: "find and register name for docker bridge for control plane: {{ cp_name }}"
-    command: "docker network ls -fname={{ cp_name }}_accel_network -q"
+    command: "docker network ls -fname={{ cp_name }}_1_accel_network -q"
     register: docker_br
 
   - name: "check if {{ vxlan_iface }} exists"
