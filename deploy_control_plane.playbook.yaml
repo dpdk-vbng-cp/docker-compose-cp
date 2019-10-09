@@ -1,57 +1,53 @@
 ---
 - hosts: all
   vars:
-    src_path: "~/docker-compose-cp"
-    dest_path: "~/{{ cp_name }}"
+    repo_clone_target: "~/docker-compose-cp"
+    repo_cp_copy: "~/{{ cp_name }}"
   vars_files: 
-    - "~/vBNG/docker-compose-cp/{{ cp_name }}.yml"
+    - "control-plane-configs/{{ cp_name }}.yml"
 
   tasks:
-  - name: install required system packages for docker official 
-    become: yes
-    become_method: sudo
-    apt: 
-      name: 
-        - apt-transport-https
-        - ca-certificates
-        - curl
-        - gnupg-agent
-        - software-properties-common
-        - virtualenv
-        - python3-setuptools
-  
   - name: add Docker’s official GPG key and adding the apt repo
     become: yes
     apt_key:
       url: https://download.docker.com/linux/ubuntu/gpg
       state: present
 
-  - apt_repository:
-      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+  - name: add official docker repository for bionic to apt sources
     become: yes
+    apt_repository:
+      repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
 
-  - name: update apt cache and install required packages
+  - name: update apt cache and install required packages (including docker)
     become: yes
     apt:
+      update_cache: yes
       name: 
-        - aptitude
-        - docker-ce
-        - docker-ce-cli
-        - containerd.io
-        - python3-pip
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+      - virtualenv
+      - python3-setuptools
+      - aptitude
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - python3-pip
 
-  - name: install docker python module
-    pip:
-      name: 
-        - docker-compose
-        - docker
-
-  - name: install docker-compose and add to user 
+  - name: download and add docker-compose from github to /usr/bin
     become: yes
     get_url:
       url: https://github.com/docker/compose/releases/download/1.24.1/docker-compose-Linux-x86_64
       dest: /usr/bin/docker-compose
       mode: 0755
+
+  - name: install docker and docker-compose python modules
+    pip:
+      name: 
+        - docker-compose
+        - docker
 
   - name: "add the user {{ ansible_user_id }} to the group 'docker'"
     become: yes
@@ -68,49 +64,113 @@
   - name: clone docker-compose-cp git repo including all submodules
     git:
       repo: 'https://github.com/dpdk-vbng-cp/docker-compose-cp.git'
-      dest: ~/docker-compose-cp
+      dest: "{{ repo_clone_target }}"
 
-  - name: creating controll plane without affecting the git repo
-    shell: |
-      cp -r {{ src_path }}/. {{ dest_path }}
+  - name: "copy control plane git repo for specific modification for {{ cp_name }}"
+    copy:
+      src: "{ repo_clone_target }}"
+      dest: "{{ repo_cp_copy }}"
+      remote_src: yes
+      directory_mode: yes
   
-  - name: generate docker-compose.yml config for WFS/local-lab setup
+  - name: "generate docker-compose.yml config for control plane: {{ cp_name }}"
     template:
       src: docker-compose.j2
-      dest: "{{ dest_path }}/docker-compose.yml"
+      dest: "{{ repo_cp_copy }}/docker-compose.yml"
 
-  - name: generate accel-ppp.conf config for WFS/local-lab setup
+  - name: "generate accel-ppp.conf config for for control plane: {{ cp_name }}"
     template:
       src: accel-ppp.j2
-      dest: "{{ dest_path }}/config/accel-pppd/etc/accel-ppp.conf"
+      dest: "{{ repo_cp_copy }}/config/accel-pppd/etc/accel-ppp.conf"
 
-  - name: generate clients.conf for radius authentication
+  - name: "generate clients.conf for radius authentication for control plane: {{ cp_name }}"
     template:
       src: clients.j2
-      dest: "{{ dest_path }}/config/freeradius/etc/raddb/clients.conf"
+      dest: "{{ repo_cp_copy }}/config/freeradius/etc/raddb/clients.conf"
 
-  - name: generate docker-entrypoint for accel-pppd with interface slicing
+  - name: "generate docker-entrypoint for accel-pppd with interface slicing for control plane: {{ cp_name }}"
     template:
       src: docker-entrypoint.j2
-      dest: "{{ dest_path }}/docker-accel-ppp/accel-pppd/docker-entrypoint.sh"
+      dest: "{{ repo_cp_copy }}/docker-accel-ppp/accel-pppd/docker-entrypoint.sh"
       
-  - name: build the accel-ppp module
+  - name: "build the accel-ppp module for control plane: {{ cp_name }}"
     make:
-      chdir: "{{ dest_path }}/docker-accel-ppp"
+      chdir: "{{ repo_cp_copy }}/docker-accel-ppp"
       target: build
 
-  - name: start containerized control plane with docker-compose
+  - name: "start containerized control plane with docker-compose for control plane: {{ cp_name }}"
     docker_compose:
-      project_src: "{{ dest_path }}"
+      project_src: "{{ repo_cp_copy }}"
       nocache: yes
-      files: 
-         - docker-compose.yml
 
-#  - name: update the vxlan connectivity script
-#    template:
-#      src: vxlan_CP-DP.j2
-#      dest: "{{ dest_path }}/vxlan_CP-DP.sh"
+  - name: "find and register name for docker bridge for control plane: {{ cp_name }}"
+    command: "docker network ls -fname={{ cp_name }}_accel_network -q"
+    register: docker_br
 
-#  - name: creating vxlan interface and connecting data plane
-#    become: yes
-#    command: sh /home/"{{ ansible_user_id }}"/docker-compose-cp/vxlan_CP-DP.sh
+  - name: "check if {{ vxlan_iface }} exists"
+    command: "ip l show {{ vxlan_iface }}"
+    register: vxlan_iface_exists
+    ignore_errors: yes
+
+  - name: "create vxlan interface {{ vxlan_iface }}"
+    become: yes
+    command: "ip l add {{ vxlan_iface }} type vxlan id {{ vxlan_id }} dstport 4789 local {{ ansible_host }} remote {{ dataplane_ip }}"
+    when: vxlan_iface_exists is failed
+
+  - name: "check if {{ veth_iface }} exists"
+    command: "ip l show {{ veth_iface }}"
+    register: veth_iface_exists
+    ignore_errors: yes
+
+  - name: "create veth interface {{ veth_iface }} with peer {{ veth_peer }}"
+    become: yes
+    command: "ip l add {{ veth_iface }} type veth peer name {{ veth_peer }}"
+    when: veth_iface_exists is failed
+
+  - name: "set {{ item }} interface up"
+    become: yes
+    command: "ip l set {{ item }} up"
+    with_items:
+      - "{{ vxlan_iface }}"
+      - "{{ veth_iface }}"
+      - "{{ veth_peer }}"
+
+  - name: "check if {{ bridge_to_cps }} exists"
+    command: "ip l show {{ bridge_to_cps }}"
+    register: bridge_to_cps_exists
+    ignore_errors: yes
+
+  - name: "create bridge {{ bridge_to_cps }}"
+    become: yes
+    command: "brctl addbr {{ bridge_to_cps }}"
+    when: bridge_to_cps_exists is failed
+
+  - name: "check if {{ veth_iface }} is attached to {{ docker_br }}"
+    shell: "brctl show {{ docker_br }} | grep {{ veth_iface }}"
+    register: veth_iface_attached_to_bridge
+    ignore_errors: yes
+
+  - name: "attach {{ veth_iface }} to {{ docker_br }}"
+    become: yes
+    command: "brctl addif {{ docker_br }} {{ veth_iface }}"
+    when: veth_iface_attached_to_bridge if failed
+
+  - name: "check if {{ veth_peer }} is attached to {{ bridge_to_cps }}"
+    shell: "brctl show {{ bridge_to_cps }} | grep {{ veth_peer }}"
+    register: veth_peer_attached_to_bridge
+    ignore_errors: yes
+
+  - name: "attach {{ veth_peer }} to {{ bridge_to_cps }}"
+    become: yes
+    command: "brctl addif {{ bridge_to_cps }} {{ veth_peer }}"
+    when: veth_peer_attached_to_bridge if failed
+
+  - name: "check if {{ vxlan_iface }} is attached to {{ bridge_to_cps }}"
+    shell: "brctl show {{ bridge_to_cps }} | grep {{ vxlan_iface }}"
+    register: vxlan_iface_attached_to_bridge
+    ignore_errors: yes
+
+  - name: "attach {{ vxlan_iface }} to {{ bridge_to_cps }}"
+    become: yes
+    command: "brctl addif {{ bridge_to_cps }} {{ vxlan_iface }}"
+    when: vxlan_iface_attached_to_bridge if failed

@@ -12,7 +12,13 @@
 - ip_pool4_net: 192.168.14.0/24
 - telnet_port: 4000
 - tcp_port: 4001
+- dataplane_ip: 172.16.248.113
 - dataplane_uplink_port: 8094
 - dataplane_downlink_port: 8087
 - interface_range: {2001..4094}
+- vxlan_id: 200
+- vxlan_iface: vxlan200
+- veth_iface: veth2
+- veth_peer: veth3
+- bridge_to_cps: br0
 ...
