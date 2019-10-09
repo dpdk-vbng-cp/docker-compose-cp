@@ -146,14 +146,14 @@
     command: "brctl addbr {{ bridge_to_cps }}"
     when: bridge_to_cps_exists is failed
 
-  - name: "check if {{ veth_iface }} is attached to {{ docker_br.stdout }}"
-    shell: "brctl show {{ docker_br.stdout }} | grep {{ veth_iface }}"
+  - name: "check if {{ veth_iface }} is attached to br-{{ docker_br.stdout }}"
+    shell: "brctl show br-{{ docker_br.stdout }} | grep {{ veth_iface }}"
     register: veth_iface_attached_to_bridge
     ignore_errors: yes
 
-  - name: "attach {{ veth_iface }} to {{ docker_br.stdout }}"
+  - name: "attach {{ veth_iface }} to br-{{ docker_br.stdout }}"
     become: yes
-    command: "brctl addif {{ docker_br.stdout }} {{ veth_iface }}"
+    command: "brctl addif br-{{ docker_br.stdout }} {{ veth_iface }}"
     when: veth_iface_attached_to_bridge is failed
 
   - name: "check if {{ veth_peer }} is attached to {{ bridge_to_cps }}"
