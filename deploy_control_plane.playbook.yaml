@@ -128,14 +128,6 @@
     command: "ip l add {{ veth_iface }} type veth peer name {{ veth_peer }}"
     when: veth_iface_exists is failed
 
-  - name: "set {{ item }} interface up"
-    become: yes
-    command: "ip l set {{ item }} up"
-    with_items:
-      - "{{ vxlan_iface }}"
-      - "{{ veth_iface }}"
-      - "{{ veth_peer }}"
-
   - name: "check if {{ bridge_to_cps }} exists"
     command: "ip l show {{ bridge_to_cps }}"
     register: bridge_to_cps_exists
@@ -145,6 +137,15 @@
     become: yes
     command: "brctl addbr {{ bridge_to_cps }}"
     when: bridge_to_cps_exists is failed
+
+  - name: "set {{ item }} up"
+    become: yes
+    command: "ip l set {{ item }} up"
+    with_items:
+      - "{{ vxlan_iface }}"
+      - "{{ veth_iface }}"
+      - "{{ veth_peer }}"
+      - "{{ bridge_to_cps }}"
 
   - name: "check if {{ veth_iface }} is attached to br-{{ docker_br.stdout }}"
     shell: "brctl show br-{{ docker_br.stdout }} | grep {{ veth_iface }}"
