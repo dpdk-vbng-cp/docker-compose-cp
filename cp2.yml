@@ -1,0 +1,18 @@
+---
+- accel_ppp_ip: 110.120.0.5
+- radius_ip: 110.120.0.7
+- mac_dl: 00:00:00:01:01:00
+- ip_subnet: 110.120.0.0/16
+- ip_pool_gw: 192.168.10.1
+- ip_pool0: 192.168.10.2-255
+- ip_pool1: 192.168.11.1-255
+- ip_pool2: 192.168.12.1-255
+- ip_pool3: 192.168.13.1-255
+- ip_pool4: 192.168.14.1-255
+- ip_pool4_net: 192.168.14.0/24
+- telnet_port: 4000
+- tcp_port: 4001
+- dataplane_uplink_port: 8094
+- dataplane_downlink_port: 8087
+- interface_range: {2001..4094}
+...

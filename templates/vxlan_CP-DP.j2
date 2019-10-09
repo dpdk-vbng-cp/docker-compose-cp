@@ -5,14 +5,35 @@ set -x
 
 VXLAN_ID=200
 VXLAN_IFACE=vxlan$VXLAN_ID
-# podwhale2.labor2.bisdn.de
+BRIDEG_TO_CPS=br0
+
+# Control plane local address
 LOCAL={{ ansible_host }}
-# podwhale3.labor2.bisdn.de
+
+# Dataplane remote IP
 REMOTE={{ dataplane_ip }}
-DOCKER_BR=br-$(docker network ls -fname=dockercomposecp_1_accel_network -q)
+
+# creating bridges and interfaces
+
+DOCKER_BR1=br-$(docker network ls -fname={{ cp_name }}_accel_network -q)
+#DOCKER_BR2=br-$(docker network ls -fname=docker-compose-cp-2_1_accel_network_2 -q)
 # Uncomment the below instruction to use control traffic split at the client end.
 
 ip l del $VXLAN_IFACE
 ip l add $VXLAN_IFACE type vxlan id $VXLAN_ID dstport 4789 local $LOCAL remote $REMOTE
-ip l set $VXLAN_IFACE master $DOCKER_BR
+ip link del veth0 type veth peer name veth1
+#ip link del veth2 type veth peer name veth3
+ip link add veth0 type veth peer name veth1
+#ip link add veth2 type veth peer name veth3
+ip l set veth0 up
+ip l set veth1 up
+#ip l set veth2 up
+#ip l set veth3 up
+brctl addbr $BRIDEG_TO_CPS
+brctl addif $DOCKER_BR1 veth0
+brctl addif $BRIDEG_TO_CPS veth1
+#brctl addif $DOCKER_BR2 veth2
+#brctl addif $BRIDEG_TO_CPS veth3
+ip l set $VXLAN_IFACE master $BRIDEG_TO_CPS
 ip l set $VXLAN_IFACE up
+
