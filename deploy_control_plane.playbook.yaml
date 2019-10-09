@@ -69,7 +69,7 @@
 
   - name: "copy control plane git repo for specific modification for {{ cp_name }}"
     copy:
-      src: "{{ repo_clone_target }}"
+      src: "{{ repo_clone_target }}/"
       dest: "{{ repo_cp_copy }}"
       remote_src: yes
       directory_mode: yes
