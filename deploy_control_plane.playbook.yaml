@@ -73,6 +73,7 @@
       dest: "{{ repo_cp_copy }}"
       remote_src: yes
       directory_mode: yes
+      force: yes
   
   - name: "generate docker-compose.yml config for control plane: {{ cp_name }}"
     template:
