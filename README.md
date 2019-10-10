@@ -136,13 +136,13 @@ ansible-playbook -i inventory deploy_control_plane.playbook.yaml -k -u ubuntu -l
 ```
 ### End to end testing 
 
-In the repo we have the "testing_scripts" folder, which has couple of scripts to 
+In the repo we have the `testing_scripts` folder, which has couple of scripts to 
 create a Core and a Access side in network namespaces.
-The script "create_ns_core.sh" creates two names spaces "gw", which is the 
-gateway to reach the internet and "world", which is the internet itself. 
-The "create_ns_access.sh" generates two namespaces "access1" and "access2". 
-"access1" has the vlan interface between "0..2000" so it is handled by "cp1" and 
-"access2" has the vlan interface between "2001..4094" and thus is handled by "cp2".
+The script `create_ns_core.sh` creates two names spaces `gw`, which is the 
+gateway to reach the internet and `world`, which is the internet itself. 
+The `create_ns_access.sh` generates two namespaces `access1` and `access2`. 
+`access1` has the vlan interface between "0..2000" so it is handled by `cp1` and 
+`access2` has the vlan interface between "2001..4094" and thus is handled by `cp2`.
 We can start the "iperf" traffic on any one of the namespaces or both of them and 
 can notice the traffic in the internet namespace.
 
