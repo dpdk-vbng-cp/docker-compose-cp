@@ -4,7 +4,6 @@
     repo_clone_target: "~/docker-compose-cp"
     repo_cp_copy: "~/{{ cp_name }}"
     run_mode: "deploy"
-    clean_mode: "normal"
   vars_files: 
     - "control-plane-configs/{{ cp_name }}.yml"
 
@@ -63,7 +62,14 @@
       name: redis
       executable: pip3
 
-  - name: clean up all docker-compose-cp repo and copy of it
+  - name: "stop and remove all docker containers for control-plane: {{ cp_name }}"
+    docker_compose:
+      state: absent
+      remove_images: all
+      project_src: "{{ repo_cp_copy }}"
+    when: run_mode == "clean_deploy"
+
+  - name: "clean up directories {{ repo_clone_target }} and {{ repo_cp_copy }}"
     file:
       path: "{{ item }}"
       state: absent
@@ -71,15 +77,6 @@
       - "{{ repo_clone_target }}"
       - "{{ repo_cp_copy }}"
     when: run_mode == "clean_deploy"
-
-  - name: stop and remove all docker containers and images
-    shell: "{{ item }}"
-    when: run_mode == "clean_deploy" and clean_mode == "remove_all_the_docker_things"
-    with_items:
-      - "docker stop $(docker ps -a -q)"
-      - "docker rm $(docker ps -a -q)"
-      - "docker rmi -f $(docker images -a -q)"
-    ignore_errors: yes
 
   - name: clone docker-compose-cp git repo including all submodules
     git:
