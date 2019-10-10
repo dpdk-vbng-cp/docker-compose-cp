@@ -31,135 +31,123 @@ Docker compose creates the control plane docker environment:
 ```
 ## Dependencies
 
-Currently the control plane is installed on an Ubuntu platform.
+Currently the control plane is installed on Ubuntu via ansible.
+To get started with ansible, please follow the official documentation:
+- https://docs.ansible.com/ansible/latest/user_guide/intro_getting_started.html
+
+Apart from a basic understanding of ansible, you should have a working
+environment with:
 
 * Ubuntu 18.04 or newer
 * python3
 * pip3
+* ansible (instructions on how to install are below)
 
 ## Prerequisits
 
-Currently the control plane is implemented in a Docker-compose environment. So to deploy the control plane we need some modules and packages as the prerequisits.
+### Install ansible on your local machine 
 
-1. Install 'docker' and 'docker-compose'
-
-```
-sudo apt update
-sudo apt install -y docker-compose docker.io python3-pip
-sudo usermod -a -G docker <username>
-```
-We need to add our user to the docker group to allow it access to the docker socket, which is required to use all docker commands.
-For more information about 'docker' and 'docker-compose' please follow the below link:
-
-https://docs.docker.com/get-started/
-
-https://docs.docker.com/compose/gettingstarted/
-
-2. Install 'redis' module
+You need to install the ansible python module on your local machine. There is no
+need to install ansible on the remote hosts or targets. If you are running
+ubuntu on your local machine, you can run:
 
 ```
-pip3 install redis
+sudo apt install ansible
 ```
-For more information on 'redis' follow the below link:
 
-https://redis.io/topics/quickstart
+If you run any other system, please follow the documentation on how to install
+ansible:
+- https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html
 
-## Deploying control plane
+## Ansible deployment
 
-The below steps lets you create the control plane.
-### Cloning the modules from the git repo
+The ansible playbook in this repository will install all needed components
+(including docker, docker-compose, redis and so on) on your target machine and
+also apply the proper network configuration to them. To fit the deployment to
+your environment, you need to create and adapt the ansible inventory file
+(instruction on that are below) and add  controle plane specific variable files
+with unique names to the `control-plane-configs` folder.
+
+### Writing your inventory
+
+Add your target hosts, including some host specific variables to your inventory
+file. An example can be found inside of this repository as `inventory.sample`.
+Please copy this file to `inventory` and replace the names and variable values
+according to your environment.
+
+For more information on how to work with ansible inventories, please read the
+official documention provided here:
+- https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html
+
+### Writing specifc control plane configs
+
+To allow each control plane to connect to its target data plane deployment, you
+need to specify multiple environment specifc values for each control plane you
+are deploying. Although multiple control planes can be deployed on the same
+host, each of them might need a different configuration. This repo contains two
+example files `cp1.yml` and `cp2.yml` in the `control-plane-configs` folder,
+that can be used to derive the configuration you need for your deployment. The
+name of the file will be used during the ansible-playbook run in the variable
+`cp_name` to identify which control plane should be deployed.
+
+### Running the ansible playbook
+
+To run the ansible playbook after you followed all the steps above, just
+execute the below command on your local machine:
 
 ```
-git clone https://github.com/dpdk-vbng-cp/docker-compose-cp.git
-cd docker-compose-cp
+ansible-playbook -i inventory deploy_control_plane.playbook.yaml -k -u ubuntu -l server3 -e cp_name=cp1
 ```
-### Run the environment
-Update submodule:
+
+- `-i inventory`: specifies the inventory file that contains all the target
+  hosts and the environment specific variables
+- `deploy_control_plane.playbook.yaml`: is the name of the ansible playbook
+  inside of this repo that will be executed
+- `-k`: will ask for a connection password in case you are not able to
+  authenticate with your ssh key to the remote server
+- `-u ubuntu`: will set the username that is used to login to the remote server
+  to `ubuntu` (change this if you are using another user to access your server)
+- `-l server3`: will limit the ansible playbook run to the server `server3`
+  specified in your inventory file
+- `-e cp_name=cp1`: will define the unique name for your control plane that is
+  used to differentiate between multiple docker-compose based deployments on one
+  server. This name ("cp1") has to match the filename in the
+  `control-plane-configs` folder on your local server. This file defines
+  additional variables that are specific for each control plane.
+
+For more information on ansible please check the official documentation here:
+https://docs.ansible.com/ansible/latest/user_guide/intro_getting_started.html
+
+NOTE:: This ansible_playbook also creates a vxlan interface to connect the
+control plane and the data plane after all the docker containers are created.
+
+### Cleaning up and redeploying
+
+If you did major changes (especially to the docker-compose containers) you might
+want to clean up the docker images, folders and containers to get a fresh
+deployment without caching or any other strange artifacts in it. The ansible
+playbook can be used to do this by providing the variable
+"run_mode=clean_deploy" during the execution. An example command to clean up and
+redeploy everything related to the control plane with the cp_name=cp1 would look
+like this:
 
 ```
-git submodule update --init
-cd docker-accel-ppp
-make build
-cd ..
+ansible-playbook -i inventory deploy_control_plane.playbook.yaml -k -u ubuntu -l server3 -e cp_name=cp1 -e run_mode=clean_deploy
 ```
-Create the containers and start them
+ 
 
-```
-docker-compose up -d
-```
-Stop environment:
-
-```
-docker-compose stop
-```
-Delete docker containers:
-
-```
-docker-compose rm
-```
-### Connecting CP and DP
-Create vxlan to connect the control plane and data plane.
-
-```
-./vxlan_CP-DP.sh
-```
-### Debug output
+### Helpful commands for debugging
 
 To see the debug output of the dpdk-ip-pipeline CLI installing forwarding rules in the UL_VF and the DL_VF:
 
 ```
 docker logs -f dockercomposecp_dpdk-ip-pipeline-cli_1
 ```
-# Vagrant Box Deployment
 
-This repo also contains a vagrant folder to setup the full docker-compose control plane in a virtual machine. To start this, just run:
+To be continued...
 
-```
-cd vagrant
-vagrant up
-```
-For more details on Vagrant, please follow the below link:
+# Helpful links:
 
-https://www.vagrantup.com/intro/index.html
+- https://docs.docker.com/get-started/
+- https://docs.docker.com/compose/gettingstarted/
 
-# Ansible Deployment
-
-This repo also contains an Ansible module which creates the control plane from your local machine. The steps to add your hosts/targets and executing the ansible_playbook on them are below:
-
-### Install ansible in your local machine 
-
-you need to install the ansible module in your local machine. There is no need to install ansible in the remote hosts or targets
-
-```
-sudo apt install ansible
-```
-### Adding hosts/targets to your ansible known hosts file
-```
-sudo vi /etc/ansible/hosts
-
-```
-add your specific hostnames and variables for your target machine. Here is an example of how the file looks like. You can use your own inventory for ansible_playbook as well.
-```
-[servers]
-<target hostname1> ansible_host=xx.xx.xx.xx (ip of your target host) hostname_dataplane=<hostname of your data plane 1> dataplane_ip=<xx.xx.xx.xx> (ip of your dataplane)
-#server3 ansible_host=203.0.113.113
-
-[servers:vars]
-dataplane_uplink_port1=<port number of uplink>
-dataplane_downlink_port1=<port number of downlink>
-```
-
-if multiple hosts need to be targeted, then this file needs to be updated with the hostnames and the IP addresses of the new servers, along with the required relevant variables
-
-### Executing ansible_playbook
-
-```
-ansible-playbook deploy_control_plane.playbook.yaml -k -u <username> -l <hostname1>
-```
-
-provide the 'username' and the 'hostname' of the server you are targeting. The 'hostname' is the name that you provided as a variable in the file "/etc/ansible/hosts". For more information on Ansible please follow the link below.
-
-https://docs.ansible.com/ansible/latest/user_guide/intro_getting_started.html
-
-NOTE:: This ansible_playbook also creates a vxlan interface to connect the control plane and the data plane after all the docker containers are created.
- 
