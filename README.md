@@ -31,114 +31,64 @@ Docker compose creates the control plane docker environment:
 ```
 ## Dependencies
 
-Currently the control plane is installed on an Ubuntu platform.
+Currently the control plane is installed on Ubuntu via ansible.
+To get started with ansible, please follow the official documentation:
+- https://docs.ansible.com/ansible/latest/user_guide/intro_getting_started.html
+
+Apart from a basic understanding of ansible, you should have a working
+environment with:
 
 * Ubuntu 18.04 or newer
 * python3
 * pip3
+* ansible (instructions on how to install are below)
 
 ## Prerequisits
 
-Currently the control plane is implemented in a Docker-compose environment. So to deploy the control plane we need some modules and packages as the prerequisits.
+### Install ansible on your local machine 
 
-1. Install 'docker' and 'docker-compose'
-
-```
-sudo apt update
-sudo apt install -y docker-compose docker.io python3-pip
-sudo usermod -a -G docker <username>
-```
-We need to add our user to the docker group to allow it access to the docker socket, which is required to use all docker commands.
-For more information about 'docker' and 'docker-compose' please follow the below link:
-
-https://docs.docker.com/get-started/
-
-https://docs.docker.com/compose/gettingstarted/
-
-2. Install 'redis' module
-
-```
-pip3 install redis
-```
-For more information on 'redis' follow the below link:
-
-https://redis.io/topics/quickstart
-
-## Deploying control plane
-
-The below steps lets you create the control plane.
-### Cloning the modules from the git repo
-
-```
-git clone https://github.com/dpdk-vbng-cp/docker-compose-cp.git
-cd docker-compose-cp
-```
-### Run the environment
-Update submodule:
-
-```
-git submodule update --init
-cd docker-accel-ppp
-make build
-cd ..
-```
-Create the containers and start them
-
-```
-docker-compose up -d
-```
-Stop environment:
-
-```
-docker-compose stop
-```
-Delete docker containers:
-
-```
-docker-compose rm
-```
-### Connecting CP and DP
-Create vxlan to connect the control plane and data plane.
-
-```
-./vxlan_CP-DP.sh
-```
-### Debug output
-
-To see the debug output of the dpdk-ip-pipeline CLI installing forwarding rules in the UL_VF and the DL_VF:
-
-```
-docker logs -f dockercomposecp_dpdk-ip-pipeline-cli_1
-```
-# Vagrant Box Deployment
-
-This repo also contains a vagrant folder to setup the full docker-compose control plane in a virtual machine. To start this, just run:
-
-```
-cd vagrant
-vagrant up
-```
-For more details on Vagrant, please follow the below link:
-
-https://www.vagrantup.com/intro/index.html
-
-# Ansible Deployment
-
-This repo also contains an Ansible module which creates the control plane from your local machine. The steps to add your hosts/targets and executing the ansible_playbook on them are below:
-
-### Install ansible in your local machine 
-
-you need to install the ansible module in your local machine. There is no need to install ansible in the remote hosts or targets
+You need to install the ansible python module on your local machine. There is no
+need to install ansible on the remote hosts or targets. If you are running
+ubuntu on your local machine, you can run:
 
 ```
 sudo apt install ansible
 ```
+
+If you run any other system, please follow the documentation on how to install
+ansible:
+- https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html
+
+## Ansible deployment
+
+The ansible playbook in this repository will install all needed components
+(including docker, docker-compose, redis and so on) on your target machine and
+also apply the proper network configuration to them. To fit the deployment to
+your environment, you need to create and adapt the ansible inventory file
+(instruction on that are below) and add  controle plane specific variable files
+with unique names to the `control-plane-configs` folder.
+
 ### Writing your inventory
 
 Add your target hosts, including some host specific variables to your inventory
 file. An example can be found inside of this repository as `inventory.sample`.
 Please copy this file to `inventory` and replace the names and variable values
 according to your environment.
+
+For more information on how to work with ansible inventories, please read the
+official documention provided here:
+- https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html
+
+### Writing specifc control plane configs
+
+To allow each control plane to connect to its target data plane deployment, you
+need to specify multiple environment specifc values for each control plane you
+are deploying. Although multiple control planes can be deployed on the same
+host, each of them might need a different configuration. This repo contains two
+example files `cp1.yml` and `cp2.yml` in the `control-plane-configs` folder,
+that can be used to derive the configuration you need for your deployment. The
+name of the file will be used during the ansible-playbook run in the variable
+`cp_name` to identify which control plane should be deployed.
 
 ### Running the ansible playbook
 
@@ -168,5 +118,36 @@ ansible-playbook -i inventory deploy_control_plane.playbook.yaml -k -u ubuntu -l
 For more information on ansible please check the official documentation here:
 https://docs.ansible.com/ansible/latest/user_guide/intro_getting_started.html
 
-NOTE:: This ansible_playbook also creates a vxlan interface to connect the control plane and the data plane after all the docker containers are created.
+NOTE:: This ansible_playbook also creates a vxlan interface to connect the
+control plane and the data plane after all the docker containers are created.
+
+### Cleaning up and redeploying
+
+If you did major changes (especially to the docker-compose containers) you might
+want to clean up the docker images, folders and containers to get a fresh
+deployment without caching or any other strange artifacts in it. The ansible
+playbook can be used to do this by providing the variable
+"run_mode=clean_deploy" during the execution. An example command to clean up and
+redeploy everything related to the control plane with the cp_name=cp1 would look
+like this:
+
+```
+ansible-playbook -i inventory deploy_control_plane.playbook.yaml -k -u ubuntu -l server3 -e cp_name=cp1 -e run_mode=clean_deploy
+```
  
+
+### Helpful commands for debugging
+
+To see the debug output of the dpdk-ip-pipeline CLI installing forwarding rules in the UL_VF and the DL_VF:
+
+```
+docker logs -f dockercomposecp_dpdk-ip-pipeline-cli_1
+```
+
+To be continued...
+
+# Helpful links:
+
+- https://docs.docker.com/get-started/
+- https://docs.docker.com/compose/gettingstarted/
+
