@@ -15,7 +15,7 @@
 - dataplane_ip: 172.16.248.113
 - dataplane_uplink_port: 8094
 - dataplane_downlink_port: 8086
-- interface_range: {0..2000}
+- interface_range: '{0..2000}'
 - vxlan_id: 200
 - vxlan_iface: vxlan200
 - veth_iface: veth0
