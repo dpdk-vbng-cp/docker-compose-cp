@@ -147,6 +147,11 @@
     register: veth_iface_exists
     ignore_errors: yes
 
+  - name: "delete veth interface {{ veth_iface }} with peer {{ veth_peer }}"
+    become: yes
+    command: "ip l d {{ veth_iface }}"
+    when: veth_iface_exists is succeeded and run_mode == "clean_deploy"
+
   - name: "create veth interface {{ veth_iface }} with peer {{ veth_peer }}"
     become: yes
     command: "ip l add {{ veth_iface }} type veth peer name {{ veth_peer }}"
