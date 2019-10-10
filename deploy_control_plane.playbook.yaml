@@ -66,6 +66,7 @@
     docker_compose:
       state: absent
       remove_images: all
+      remove_orphans: yes
       project_src: "{{ repo_cp_copy }}"
     when: run_mode == "clean_deploy"
 
