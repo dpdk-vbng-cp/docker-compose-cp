@@ -43,13 +43,13 @@ environment with:
 * pip3
 * ansible (instructions on how to install are below)
 
-## Prerequisits
+## Prerequisites
 
 ### Install ansible on your local machine 
 
 You need to install the ansible python module on your local machine. There is no
 need to install ansible on the remote hosts or targets. If you are running
-ubuntu on your local machine, you can run:
+Ubuntu on your local machine, you can run:
 
 ```
 sudo apt install ansible
@@ -65,7 +65,7 @@ The ansible playbook in this repository will install all needed components
 (including docker, docker-compose, redis and so on) on your target machine and
 also apply the proper network configuration to them. To fit the deployment to
 your environment, you need to create and adapt the ansible inventory file
-(instruction on that are below) and add  controle plane specific variable files
+(instruction on that are below) and add  control plane specific variable files
 with unique names to the `control-plane-configs` folder.
 
 ### Writing your inventory
@@ -76,13 +76,13 @@ Please copy this file to `inventory` and replace the names and variable values
 according to your environment.
 
 For more information on how to work with ansible inventories, please read the
-official documention provided here:
+official documentation provided here:
 - https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html
 
-### Writing specifc control plane configs
+### Writing specific control plane configs
 
 To allow each control plane to connect to its target data plane deployment, you
-need to specify multiple environment specifc values for each control plane you
+need to specify multiple environment specific values for each control plane you
 are deploying. Although multiple control planes can be deployed on the same
 host, each of them might need a different configuration. This repo contains two
 example files `cp1.yml` and `cp2.yml` in the `control-plane-configs` folder,
