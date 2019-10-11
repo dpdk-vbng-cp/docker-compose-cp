@@ -35,6 +35,7 @@
       - docker-ce
       - docker-ce-cli
       - containerd.io
+      - python-pip
       - python3-pip
 
   - name: download and add docker-compose from github to /usr/bin
