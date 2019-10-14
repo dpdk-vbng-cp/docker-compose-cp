@@ -40,24 +40,51 @@ environment with:
 
 * Ubuntu 18.04 or newer
 * python3
-* pip3
+* python3-venv
 * ansible (instructions on how to install are below)
 
 ## Prerequisites
 
-### Install ansible on your local machine 
+### Install ansible on your local machine
 
 You need to install the ansible python module on your local machine. There is no
-need to install ansible on the remote hosts or targets. If you are running
-Ubuntu on your local machine, you can run:
+need to install ansible on the remote hosts or targets. To install the tested
+version of ansible, including all other needed python modules, please use a
+virtual environment and the requirements.txt provided in this repo. If you are
+running Ubuntu on your local machine and have `python3` and `python3-venv`
+already installed, you can run:
 
 ```
-sudo apt install ansible
+python3 -m venv my-virtualenv
 ```
 
-If you run any other system, please follow the documentation on how to install
-ansible:
-- https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html
+To active the the created virtualenv run:
+
+```
+source my-virtualenv/bin/activate
+```
+
+And finally to install all needed python modules into the actived virtualenv run:
+
+```
+pip install -r requirements.txt
+```
+
+After you have followed all three steps from above, running the command `pip
+freeze` should look exactly like this:
+
+```
+ubuntu@localhost:~$ pip freeze
+ansible==2.8.5
+asn1crypto==1.1.0
+cffi==1.12.3
+cryptography==2.7
+Jinja2==2.10.3
+MarkupSafe==1.1.1
+pycparser==2.19
+PyYAML==5.1.2
+six==1.12.0
+```
 
 ## Ansible deployment
 
@@ -92,6 +119,9 @@ name of the file will be used during the ansible-playbook run in the variable
 
 ### Running the ansible playbook
 
+Before running the ansible playbook as described below, make sure you have the
+correct host key fingerprint of your target machine added to your local
+known_hosts file (the ansible ssh connections will fail otherwise).
 To run the ansible playbook after you followed all the steps above, just
 execute the below command on your local machine:
 

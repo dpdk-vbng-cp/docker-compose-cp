@@ -35,8 +35,8 @@
       - docker-ce
       - docker-ce-cli
       - containerd.io
-      - python-pip
       - python3-pip
+      - bridge-utils
 
   - name: download and add docker-compose from github to /usr/bin
     become: yes
@@ -50,6 +50,7 @@
       name: 
         - docker-compose
         - docker
+      executable: pip3
 
   - name: "add the user {{ ansible_user_id }} to the group 'docker'"
     become: yes
@@ -57,6 +58,11 @@
       name: "{{ ansible_user_id }}"
       groups: docker
       append: yes
+    register: docker_user_add
+
+  - name: Reset ssh connection to allow user changes to affect 'current login user'
+    meta: reset_connection
+    when: docker_user_add changed
 
   - name: install the python3 redis module
     pip:
