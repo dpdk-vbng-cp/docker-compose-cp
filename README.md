@@ -95,6 +95,20 @@ your environment, you need to create and adapt the ansible inventory file
 (instruction on that are below) and add  control plane specific variable files
 with unique names to the `control-plane-configs` folder.
 
+### Running docker on your target machine behind a proxy
+
+If your target machine is running behind a proxy or does not have direct access
+to the internet and more specifically to the ubuntu apt repositories, you need
+to add this proxy also for docker. To allow docker running on the target machine
+to pull images from dockerhub (which we need to pull all the base images), you
+have to modify the docker service like documented here:
+- https://docs.docker.com/config/daemon/systemd/#httphttps-proxy
+To allow docker containers to install new packages during runtime (which is
+needed to install the proper kernel header files to build kernel modules in our
+case) you also need to add your proxies for the docker client like documented
+here:
+- https://docs.docker.com/network/proxy/
+
 ### Writing your inventory
 
 Add your target hosts, including some host specific variables to your inventory
