@@ -2,7 +2,7 @@ version: '2.4'
 services:
  dpdk-ip-pipeline-cli:
     build: ./bng-utils/dpdk-ip-pipeline-cli
-    command: [ "--redis-host", "redis", "--redis-port", "6379", "--telnet-host-uplink", "{{ hostname_dataplane }}.labor2.bisdn.de", "--telnet-port-uplink", "{{ dataplane_uplink_port }}", "--telnet-host-downlink", "{{ hostname_dataplane }}.labor2.bisdn.de", "--telnet-port-downlink", "{{ dataplane_downlink_port }}" ]
+    command: [ "--redis-host", "redis", "--redis-port", "6379", "--telnet-host-uplink", "{{ hostname_dataplane }}", "--telnet-port-uplink", "{{ dataplane_uplink_port }}", "--telnet-host-downlink", "{{ hostname_dataplane }}", "--telnet-port-downlink", "{{ dataplane_downlink_port }}" ]
     depends_on:
       - "redis"
       - "telnet_downlink"
