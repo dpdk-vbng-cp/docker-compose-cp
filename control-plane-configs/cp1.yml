@@ -12,7 +12,7 @@
 - ip_pool4_net: 192.168.4.0/24
 - telnet_port: 2000
 - tcp_port: 2001
-- dataplane_ip: 172.16.248.113
+- hostname_dataplane: "data-plane-01.labor2.bisdn.de"
 - dataplane_uplink_port: 8094
 - dataplane_downlink_port: 8086
 - interface_range: '{0..2000}'

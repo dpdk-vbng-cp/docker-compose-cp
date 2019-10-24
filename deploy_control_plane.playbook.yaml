@@ -147,7 +147,7 @@
 
   - name: "create vxlan interface {{ vxlan_iface }}"
     become: yes
-    command: "ip l add {{ vxlan_iface }} type vxlan id {{ vxlan_id }} dstport 4789 local {{ ansible_host }} remote {{ dataplane_ip }}"
+    command: "ip l add {{ vxlan_iface }} type vxlan id {{ vxlan_id }} dstport 4789 local {{ ansible_default_ipv4.address }} remote {{ lookup('dig', hostname_dataplane) }}"
     when: vxlan_iface_exists is failed
 
   - name: "check if {{ veth_iface }} exists"
