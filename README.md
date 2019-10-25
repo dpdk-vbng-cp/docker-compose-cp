@@ -77,8 +77,11 @@ freeze` should look exactly like this:
 ubuntu@localhost:~$ pip freeze
 ansible==2.8.5
 asn1crypto==1.1.0
-cffi==1.12.3
+cffi==1.13.0
 cryptography==2.7
+dnspython==1.16.0
+enum34==1.1.6
+ipaddress==1.0.23
 Jinja2==2.10.3
 MarkupSafe==1.1.1
 pycparser==2.19
@@ -112,9 +115,11 @@ here:
 ### Writing your inventory
 
 Add your target hosts, including some host specific variables to your inventory
-file. An example can be found inside of this repository as `inventory.sample`.
-Please copy this file to `inventory` and replace the names and variable values
-according to your environment.
+file. Please use the hostnames and not the ip addresses of your target system. 
+The deployment playbook is written in a way that ansible workstation will automatically
+resolve the ip address of your target systems. An example can be found inside of 
+this repository as `inventory.sample`. Please copy this file to `inventory` and 
+replace the names and variable values according to your environment.
 
 For more information on how to work with ansible inventories, please read the
 official documentation provided here:
