@@ -80,8 +80,6 @@ asn1crypto==1.1.0
 cffi==1.13.0
 cryptography==2.7
 dnspython==1.16.0
-enum34==1.1.6
-ipaddress==1.0.23
 Jinja2==2.10.3
 MarkupSafe==1.1.1
 pycparser==2.19
