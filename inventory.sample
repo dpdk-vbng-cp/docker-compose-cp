@@ -1,6 +1,7 @@
 [all]
-# <target hostname1> ansible_host=xx.xx.xx.xx (ip of your target host) hostname_dataplane=<hostname of your data plane 1>
+# <target hostname1> hostname_dataplane=<hostname of your data plane 1>
 # an example line might look like this:
-control-plane-01 hostname_dataplane=my_dataplane_host
-control-plane-02 hostname_dataplane=my_dataplane_host
+control-plane-01 hostname_dataplane=my_dataplane_host1
+control-plane-02 hostname_dataplane=my_dataplane_host1
+control-plane-03 hostname_dataplane=my_dataplane_host2
 # to read more about ansible inventories, please check to official docs available here: https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html
