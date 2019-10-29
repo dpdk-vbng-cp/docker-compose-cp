@@ -18,6 +18,7 @@
 - interface_range: '{2001..4094}'
 - vxlan_id: 200
 - vxlan_iface: vxlan200
+- outer_tag: 700
 - veth_iface: veth2
 - veth_peer: veth3
 - bridge_to_cps: br0

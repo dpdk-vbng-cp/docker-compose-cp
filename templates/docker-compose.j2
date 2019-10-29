@@ -38,7 +38,7 @@ services:
     environment:
       - IFACE=eth1
       - OUTER_PROTO=802.1Q
-      - OUTER_TAG=700
+      - OUTER_TAG={{ outer_tag }}
       - INNER_PROTO=802.1Q
  freeradius:
    image: freeradius/freeradius-server
