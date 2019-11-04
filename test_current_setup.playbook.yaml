@@ -119,11 +119,11 @@
     with_sequence: 2-10
 
   - name: "create static arp entries for subnet1 (192.168.20.x addresses) hosts"
-    command: "ip netns exec {{ gw_ns }} arp -s 192.168.20.{{ item }} {{ downlink_mac_1 }}"
+    command: "ip netns exec {{ gw_ns }} arp -s 192.168.20.{{ item }} {{ downlink_mac_3 }}"
     with_sequence: 2-10
 
   - name: "create static arp entries for subnet2 (192.168.30.x addresses) hosts"
-    command: "ip netns exec {{ gw_ns }} arp -s 192.168.30.{{ item }} {{ downlink_mac_2 }}"
+    command: "ip netns exec {{ gw_ns }} arp -s 192.168.30.{{ item }} {{ downlink_mac_4 }}"
     with_sequence: 2-10
 
   - name: "configuring {{ internet_ns }} with: {{ item }}"
