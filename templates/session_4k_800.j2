@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# This script separates the networks for traffic generation and reception on
+# smicro-oben. Moreover it creates a gateway between the BNG and the network
+# intended to receive the traffic.
+
+DEBUG=${DEBUG:-0}
+[[ $DEBUG -gt 0 ]] && set -x
+
+ip netns delete access_4k_800
+ip netns add access_4k_800
+sysctl -w net.ipv6.conf.all.disable_ipv6=1
+sysctl -w net.ipv6.conf.default.disable_ipv6=1
+ip netns exec access_4k_800 ip l set lo up
+
+for i in {1..4000}; do
+        INNER_IFACE={{ outer_iface_2}}.c$i
+        ip link add link {{ outer_iface_2}} $INNER_IFACE type vlan proto 802.1Q id $i
+        ip l set $INNER_IFACE netns access_4k_800
+        ip netns exec access_4k_800 ip l set $INNER_IFACE up
+done
+
+
+

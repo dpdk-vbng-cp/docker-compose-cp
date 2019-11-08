@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# This script separates the networks for traffic generation and reception on
+# smicro-oben. Moreover it creates a gateway between the BNG and the network
+# intended to receive the traffic.
+
+DEBUG=${DEBUG:-0}
+[[ $DEBUG -gt 0 ]] && set -x
+
+SECONDS=0
+
+for i in {1..4000}; do
+        INNER_IFACE={{ outer_iface_2}}.c$i
+        ip netns exec access_4k_800 pppd pty "pppoe -I $INNER_IFACE -T 80 -U \
+        -m 1412" noccp ipparam $INNER_IFACE linkname $INNER_IFACE noipdefault \
+        noauth default-asyncmap defaultroute hide-password updetach mtu 1492 \
+        mru 1492 noaccomp nodeflate nopcomp novj novjccomp \
+        lcp-echo-interval 40 lcp-echo-failure 3 user testing password password
+
+done
+
+duration=$SECONDS
+echo "To create 4K interfaces  $(($duration % 60)) seconds elapsed."
+
+
