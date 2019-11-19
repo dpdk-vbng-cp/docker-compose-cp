@@ -5,3 +5,6 @@ control-plane-01 hostname_dataplane=my_dataplane_host1
 control-plane-02 hostname_dataplane=my_dataplane_host1
 control-plane-03 hostname_dataplane=my_dataplane_host2
 # to read more about ansible inventories, please check to official docs available here: https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
