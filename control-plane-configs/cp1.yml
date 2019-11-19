@@ -21,7 +21,7 @@
 - ip_pool7_net: 192.168.7.0/24
 - telnet_port: 2000
 - tcp_port: 2001
-- hostname_dataplane: "data-plane-01.labor2.bisdn.de"
+- hostname_dataplane: "podwhale4.labor2.bisdn.de"
 - dataplane_uplink_port: 8094
 - dataplane_downlink_port: 8086
 - interface_range: '{0..2000}'
