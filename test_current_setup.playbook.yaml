@@ -1,0 +1,198 @@
+---
+- hosts: all
+  become: yes
+  vars:
+    gw_ns: "gw"
+    internet_ns: "world"
+    ovs_bridge_gw: "br-ovs-gw"
+    gw_iface: "enp134s0f1"
+    downlink_mac_1: "00:00:00:01:00:01"
+    downlink_mac_2: "00:00:00:01:00:00"
+    outer_tag: "700"
+    outer_iface: "vlan.{{ outer_tag }}"
+    access_iface: "enp134s0f0"
+    inner_tag_1: "46"
+    inner_tag_2: "3046"
+    inner_iface_1: "{{ outer_iface }}.{{ inner_tag_1 }}"
+    inner_iface_2: "{{ outer_iface }}.{{ inner_tag_2 }}"
+
+  tasks:
+  - name: "install required packages"
+    apt:
+      update_cache: yes
+      name:
+        - openvswitch-switch
+        - openvswitch-common
+        - pppoe
+        - iperf
+      state: present
+
+  - name: "delete all old namespaces"
+    command: "ip netns delete {{ item }}"
+    ignore_errors: yes
+    with_items:
+      - "{{ gw_ns }}"
+      - "{{ internet_ns }}"
+
+  - name: "delete all old link {{ item }}"
+    command: "ip link delete {{ item }}"
+    ignore_errors: yes
+    with_items:
+      - veth_gw_host
+      - veth_gw_ns
+
+  - name: "create veth interface veth_gw_host with peer veth_gw_ns"
+    command: "ip l add veth_gw_host type veth peer name veth_gw_ns"
+
+  - name: "create veth interface veth_gw with peer veth_world"
+    command: "ip l add veth_gw type veth peer name veth_world"
+
+  - name: "delete old bridge {{ ovs_bridge_gw }}"
+    command: "ovs-vsctl del-br {{ ovs_bridge_gw }}"
+    ignore_errors: yes
+
+  - name: "create bridge {{ ovs_bridge_gw }}"
+    command: "ovs-vsctl add-br {{ ovs_bridge_gw }}"
+
+  - name: "add {{ item }} to bridge {{ ovs_bridge_gw }}"
+    command: "ovs-vsctl add-port {{ ovs_bridge_gw }} {{ item }}"
+    with_items:
+      - "{{ gw_iface }}"
+      - "veth_gw_ns"
+
+
+  - name: "create network namespace {{ gw_ns }}"
+    command: "ip netns add {{ gw_ns }}"
+
+  - name: "create network namespace {{ internet_ns }}"
+    command: "ip netns add {{ internet_ns }}"
+
+  - name: "set mac address AA:BB:CC:DD:EE:FF for veth_gw_host"
+    command: "ip link set dev veth_gw_host address AA:BB:CC:DD:EE:FF"
+
+  - name: "move {{ item }} into namespace {{ gw_ns }}"
+    command: "ip link set {{ item }} netns {{ gw_ns }}"
+    with_items:
+      - veth_gw_host
+      - veth_gw
+
+  - name: "set {{ item }} in namespace {{ gw_ns }} up"
+    shell: "ip netns exec {{ gw_ns }} ip link set {{ item }} up"
+    with_items:
+      - veth_gw_host
+      - veth_gw
+
+  - name: "set {{ item }} up"
+    shell: "ip link set {{ item }} up"
+    with_items:
+      - veth_gw_ns
+
+  - name: "move veth_world into namespace {{ internet_ns }}"
+    command: "ip link set veth_world netns {{ internet_ns }}"
+
+  - name: "set veth_world in namespace {{ internet_ns }} up"
+    command: "ip netns exec {{ internet_ns }} ip l set veth_world up"
+
+  - name: "configuring {{ gw_ns }} with: {{ item }}"
+    command: "ip netns exec {{ gw_ns }} {{ item }}"
+    with_items:
+      - "sysctl -w net.ipv4.ip_forward=1"
+      - "ip route add default dev veth_gw"
+      - "ip route add 192.168.0.0/24 dev veth_gw_host"
+      - "ip route add 192.168.10.0/24 dev veth_gw_host"
+      - "ip address add 210.0.0.1/24 dev veth_gw"
+
+  - name: "create static arp entries for subnet1 (192.168.0.x addresses) hosts"
+    command: "ip netns exec {{ gw_ns }} arp -s 192.168.0.{{ item }} {{ downlink_mac_1 }}"
+    with_sequence: 2-10
+
+  - name: "create static arp entries for subnet2 (192.168.10.x addresses) hosts"
+    command: "ip netns exec {{ gw_ns }} arp -s 192.168.10.{{ item }} {{ downlink_mac_2 }}"
+    with_sequence: 2-10
+
+  - name: "configuring {{ internet_ns }} with: {{ item }}"
+    command: "ip netns exec {{ internet_ns }} {{ item }}"
+    with_items:
+      - "ip address add 210.0.0.100/24 dev veth_world"
+      - "ip route add 192.168.0.0/24 via 210.0.0.1"
+      - "ip route add 192.168.10.0/24 via 210.0.0.1"
+
+  - name: "set {{ item }} up"
+    command: "ip l set {{ item }} up"
+    with_items:
+      - "{{ gw_iface }}"
+      - "{{ ovs_bridge_gw }}"
+
+  - name: "delete {{ outer_iface }}"
+    command: "ip link delete {{ outer_iface }}"
+    ignore_errors: yes
+
+  - name: "add {{ access_iface }} and {{ outer_iface }}"
+    command: "ip link add link {{ access_iface }} {{ outer_iface }} type vlan proto 802.1Q id {{ outer_tag }}"
+
+  - name: "set {{ outer_iface }} up"
+    command: "ip link set {{ outer_iface }} up"
+
+  - command: "ip link add link {{ outer_iface }} {{ inner_iface_1 }} type vlan proto 802.1Q id {{ inner_tag_1 }}"
+
+  - command: "ip link set {{ inner_iface_1 }} up"
+
+  - command: "ip link add link {{ outer_iface }} {{ inner_iface_2 }} type vlan proto 802.1Q id {{ inner_tag_2 }}"
+
+  - command: "ip link set {{ inner_iface_2 }} up"
+
+  - command: "ip link set {{ access_iface }} up"
+
+  - command: "ip netns delete access1"
+    ignore_errors: yes
+
+  - command: "ip netns add access1"
+
+  - command: "ip link set  {{ inner_iface_1 }} netns access1"
+
+  - command: "ip netns exec access1 ip link set {{ inner_iface_1 }} up"
+
+  - command: "ip netns exec access1 ip link set lo up"
+
+  - command: "ip netns delete access2"
+    ignore_errors: yes
+
+  - command: "ip netns add access2"
+
+  - command: "ip link set  {{ inner_iface_2 }} netns access2"
+
+  - command: "ip netns exec access2 ip link set {{ inner_iface_2 }} up"
+
+  - command: "ip netns exec access2 ip link set lo up"
+
+  - file:
+      state: directory
+      dest: "/root/demo_scripts"
+
+  - copy:
+      dest: "/root/demo_scripts/00-start_iperf_server.sh"
+      content: "ip netns exec {{ internet_ns }} iperf -su -D"
+
+  - copy:
+      dest: "/root/demo_scripts/01-start_pppoe_session_1.sh"
+      content: "ip netns exec access1 pppd pty \"pppoe -I {{ inner_iface_1 }} -T 80 -U -m 1412\" noccp ipparam {{ inner_iface_1 }} linkname {{ inner_iface_1 }} noipdefault noauth default-asyncmap defaultroute hide-password updetach mtu 1492 mru 1492 noaccomp nodeflate nopcomp novj novjccomp lcp-echo-interval 40 lcp-echo-failure 3 user testing password password"
+
+  - copy:
+      dest: "/root/demo_scripts/02-add_pppoe_session_1_route.sh"
+      content: "ip netns exec access1 ip r add 210.0.0.0/24 dev ppp0"
+
+  - copy:
+      dest: "/root/demo_scripts/03-start_pppoe_session_2.sh"
+      content: "ip netns exec access2 pppd pty \"pppoe -I {{ inner_iface_2 }} -T 80 -U -m 1412\" noccp ipparam {{ inner_iface_2 }} linkname {{ inner_iface_2 }} noipdefault noauth default-asyncmap defaultroute hide-password updetach mtu 1492 mru 1492 noaccomp nodeflate nopcomp novj novjccomp lcp-echo-interval 40 lcp-echo-failure 3 user testing password password"
+
+  - copy:
+      dest: "/root/demo_scripts/04-add_pppoe_session_2_route.sh"
+      content: "ip netns exec access2 ip r add 210.0.0.0/24 dev ppp0"
+
+  - copy:
+      dest: "/root/demo_scripts/05-start_iperf_for_pppoe_session_1.sh"
+      content: "ip netns exec access1 iperf -u -c 210.0.0.100 -t 3600 -i 100 -b 100MB"
+
+  - copy:
+      dest: "/root/demo_scripts/06-start_iperf_for_pppoe_session_2.sh"
+      content: "ip netns exec access2 iperf -u -c 210.0.0.100 -t 3600 -i 100 -b 100MB"
