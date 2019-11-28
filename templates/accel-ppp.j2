@@ -18,9 +18,7 @@ auth_pap
 radius
 #chap-secrets
 
-ippool
-
-pppd_compat
+#pppd_compat
 
 #shaper
 #net-snmp
@@ -60,7 +58,7 @@ lcp-echo-interval=20
 #lcp-echo-failure=3
 lcp-echo-timeout=120
 unit-cache=1
-#unit-preallocate=1
+unit-preallocate=1
 
 [auth]
 #any-login=0
@@ -77,7 +75,7 @@ verbose=1
 #service-name=yyy
 #pado-delay=0
 #pado-delay=0,100:100,200:200,-1:500
-called-sid=mac
+called-sid=ifname:mac
 #tr101=1
 #padi-limit=0
 #ip-pool=pppoe
@@ -186,32 +184,19 @@ interface=eth1
 
 [radius]
 gw-ip-address={{ accel_ppp_ip }}
+nas-ip-address= {{ accel_ppp_ip }}
+nas-port=ifname
 server={{ radius_ip }},SECRET,auth-port=1812,acct-port=1813,req-limit=50,fail-timeout=0,max-fail=10,weight=1
-verbose=1
+verbose=3
 
 [client-ip-range]
 10.0.0.0/8
 
-[ip-pool]
-gw-ip-address={{ ip_pool_gw }}
+#[ip-pool]
+#gw-ip-address={{ accel_ppp_ip }}
 #vendor=Cisco
 #attr=Cisco-AVPair
-attr=Framed-Pool
-{{ ip_pool0 }}
-{{ ip_pool1 }},name=pool1
-{{ ip_pool1_net }}
-{{ ip_pool2 }},name=pool2
-{{ ip_pool2_net }}
-{{ ip_pool3 }},name=pool3
-{{ ip_pool3_net }}
-{{ ip_pool4 }},name=pool4
-{{ ip_pool4_net }}
-{{ ip_pool5 }},name=pool5
-{{ ip_pool5_net }}
-{{ ip_pool6 }},name=pool6
-{{ ip_pool6_net }}
-{{ ip_pool7 }},name=pool7,next=pool1
-{{ ip_pool7_net }}
+#attr=Framed-IP-Address
 
 [log]
 log-file=/dev/stdout
@@ -234,17 +219,17 @@ log-table=log
 [pppd-compat]
 verbose=1
 #ip-pre-up=/etc/ppp/ip-pre-up
-ip-up=/etc/ppp/ip-up
-ip-down=/etc/ppp/ip-down
+#ip-up=/etc/ppp/ip-up
+#ip-down=/etc/ppp/ip-down
 #ip-change=/etc/ppp/ip-change
-radattr-prefix=/var/run/radattr
+#radattr-prefix=/var/run/radattr
 #fork-limit=16
 
 [chap-secrets]
 gw-ip-address=192.168.100.1
 #chap-secrets=/etc/ppp/chap-secrets
 #encrypted=0
-#username-hash=md5
+username-hash=md5
 
 [shaper]
 #attr=Filter-Id

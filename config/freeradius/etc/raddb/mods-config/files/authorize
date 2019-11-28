@@ -1,3 +1,3 @@
-testing		Cleartext-Password := "password",	MS-CHAP-Use-NTLM-Auth := 0
-golduser	Cleartext-Password := "golduser123",	MS-CHAP-Use-NTLM-Auth := 0
-silveruser	Cleartext-Password := "silveruser123",	MS-CHAP-Use-NTLM-Auth := 0
+testing		Cleartext-Password := "password",	MS-CHAP-Use-NTLM-Auth := 0,   Pool-Name := "main_pool"
+golduser	Cleartext-Password := "golduser123",	MS-CHAP-Use-NTLM-Auth := 0,   Pool-Name := "main_pool"
+silveruser	Cleartext-Password := "silveruser123",	MS-CHAP-Use-NTLM-Auth := 0,   Pool-Name := "main_pool"

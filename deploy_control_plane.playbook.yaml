@@ -78,6 +78,7 @@
     when: run_mode == "clean_deploy"
 
   - name: "clean up directories {{ repo_clone_target }} and {{ repo_cp_copy }}"
+    become: yes
     file:
       path: "{{ item }}"
       state: absent
@@ -99,7 +100,13 @@
       remote_src: yes
       directory_mode: yes
       force: yes
-  
+
+  - name: "copy config folder from local to remote for {{ cp_name }}"
+    copy:
+      src: "~/vBNG_project/docker-compose-cp/config/"
+      dest: "{{ repo_cp_copy }}/config"
+      force: yes
+
   - name: "creating dpdk-pipeline rule file to dynamically change the installed rules{{ cp_name }}"
     template:
       src: dpdk-ip-pipeline-cli.j2

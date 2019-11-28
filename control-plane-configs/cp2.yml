@@ -2,32 +2,32 @@
 - accel_ppp_ip: 110.120.0.5
 - radius_ip: 110.120.0.7
 - mac_dl: 00:00:00:01:01:00
-- ip_subnet: 110.120.0.0/16
-- ip_pool_gw: 192.168.10.1
-- ip_pool0: 192.168.10.2-255
-- ip_pool1: 192.168.11.1-255
-- ip_pool1_net: 192.168.11.0/24
-- ip_pool2: 192.168.12.1-255
-- ip_pool2_net: 192.168.12.0/24
-- ip_pool3: 192.168.13.1-255
-- ip_pool3_net: 192.168.13.0/24
-- ip_pool4: 192.168.14.1-255
-- ip_pool4_net: 192.168.14.0/24
-- ip_pool5: 192.168.15.1-255
-- ip_pool5_net: 192.168.15.0/24
-- ip_pool6: 192.168.16.1-255
-- ip_pool6_net: 192.168.16.0/24
-- ip_pool7: 192.168.17.1-255
-- ip_pool7_net: 192.168.17.0/24
+  #- ip_subnet: 110.120.0.0/16
+  #- ip_pool_gw: 192.168.10.1
+  #- ip_pool0: 192.168.10.2-255
+  #- ip_pool1: 192.168.11.1-255
+  #- ip_pool1_net: 192.168.11.0/24
+  #- ip_pool2: 192.168.12.1-255
+  #- ip_pool2_net: 192.168.12.0/24
+  #- ip_pool3: 192.168.13.1-255
+  #- ip_pool3_net: 192.168.13.0/24
+  #- ip_pool4: 192.168.14.1-255
+  #- ip_pool4_net: 192.168.14.0/24
+  #- ip_pool5: 192.168.15.1-255
+  #- ip_pool5_net: 192.168.15.0/24
+  #- ip_pool6: 192.168.16.1-255
+  #- ip_pool6_net: 192.168.16.0/24
+  #- ip_pool7: 192.168.17.1-255
+  #- ip_pool7_net: 192.168.17.0/24
 - telnet_port: 4000
 - tcp_port: 4001
-- hostname_dataplane: "data-plane-01.labor2.bisdn.de"
+- hostname_dataplane: "podwhale4.labor2.bisdn.de"
 - dataplane_uplink_port: 8095
 - dataplane_downlink_port: 8087
-- interface_range: '{2001..4094}'
+- interface_range: '{0..4000}'
 - vxlan_id: 200
 - vxlan_iface: vxlan200
-- outer_tag: 700
+- outer_tag: 800
 - veth_iface: veth2
 - veth_peer: veth3
 - bridge_to_cps: br0
