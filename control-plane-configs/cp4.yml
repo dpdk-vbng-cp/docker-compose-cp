@@ -1,0 +1,36 @@
+---
+- accel_ppp_ip: 110.140.0.5
+- radius_ip: 110.140.0.7
+- mac_dl: 00:00:00:01:01:00
+- ip_subnet: 110.140.0.0/16
+- ip_range_start: 192.168.60.2
+- ip_range_end: 192.168.75.254
+  #- ip_pool_gw: 192.168.10.1
+  #- ip_pool0: 192.168.10.2-255
+  #- ip_pool1: 192.168.11.1-255
+  #- ip_pool1_net: 192.168.11.0/24
+  #- ip_pool2: 192.168.12.1-255
+  #- ip_pool2_net: 192.168.12.0/24
+  #- ip_pool3: 192.168.13.1-255
+  #- ip_pool3_net: 192.168.13.0/24
+  #- ip_pool4: 192.168.14.1-255
+  #- ip_pool4_net: 192.168.14.0/24
+  #- ip_pool5: 192.168.15.1-255
+  #- ip_pool5_net: 192.168.15.0/24
+  #- ip_pool6: 192.168.16.1-255
+  #- ip_pool6_net: 192.168.16.0/24
+  #- ip_pool7: 192.168.17.1-255
+  #- ip_pool7_net: 192.168.17.0/24
+- telnet_port: 8000
+- tcp_port: 8001
+- hostname_dataplane: "podwhale4.labor2.bisdn.de"
+- dataplane_uplink_port: 8097
+- dataplane_downlink_port: 8089
+- interface_range: '{0..4000}'
+- vxlan_id: 200
+- vxlan_iface: vxlan200
+- outer_tag: 1000
+- veth_iface: veth6
+- veth_peer: veth7
+- bridge_to_cps: br0
+...
