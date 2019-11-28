@@ -107,6 +107,11 @@
       dest: "{{ repo_cp_copy }}/config"
       force: yes
 
+  - name: "Assign ip pool for allocating ip addresses to clients: {{ cp_name }}"
+    template:
+      src: ippool.j2
+      dest: "{{ repo_cp_copy }}/config/freeradius/etc/raddb/mods-available/ippool"
+
   - name: "creating dpdk-pipeline rule file to dynamically change the installed rules{{ cp_name }}"
     template:
       src: dpdk-ip-pipeline-cli.j2
