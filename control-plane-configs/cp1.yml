@@ -5,23 +5,14 @@
 - ip_subnet: 110.110.0.0/16
 - ip_range_start: 192.168.0.2
 - ip_range_end: 192.168.15.254
+
+# for assigning ip addresses to the client from accel-ppp uncomment the ip pool addresses
   #- ip_pool_gw: 192.168.0.1
   #- ip_pool0: 192.168.0.2-254
   #- ip_pool0_net: 192.168.0.0/24
   #- ip_pool1: 192.168.1.1-254
   #- ip_pool1_net: 192.168.1.0/24
-  #- ip_pool2: 192.168.2.1-254
-  #- ip_pool2_net: 192.168.2.0/24
-  #- ip_pool3: 192.168.3.1-254
-  #- ip_pool3_net: 192.168.3.0/24
-  #- ip_pool4: 192.168.4.1-254
-  #- ip_pool4_net: 192.168.4.0/24
-  #- ip_pool5: 192.168.5.1-254
-  #- ip_pool5_net: 192.168.5.0/24
-  #- ip_pool6: 192.168.6.1-254
-  #- ip_pool6_net: 192.168.6.0/24
-  #- ip_pool7: 192.168.7.1-254
-  #- ip_pool7_net: 192.168.7.0/24
+
 - telnet_port: 2000
 - tcp_port: 2001
 - hostname_dataplane: "data-plane-01.labor2.bisdn.de"
@@ -30,6 +21,9 @@
 - interface_range: '{0..4000}'
 - vxlan_id: 200
 - vxlan_iface: vxlan200
+
+# The cp1 takes the arguments from this file, where all the 700 tagged traffic is allowed 
+ 
 - outer_tag: 700
 - veth_iface: veth0
 - veth_peer: veth1
