@@ -101,12 +101,6 @@
       directory_mode: yes
       force: yes
 
-      # - name: "copy config folder from local to remote for {{ cp_name }}"
-      #   copy:
-      #     src: "~/vBNG_project/docker-compose-cp/config/"
-      #     dest: "{{ repo_cp_copy }}/config"
-      #     force: yes
-
   - name: "Assign ip pool for allocating ip addresses to clients: {{ cp_name }}"
     template:
       src: ippool.j2
