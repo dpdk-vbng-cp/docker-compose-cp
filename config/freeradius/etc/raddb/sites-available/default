@@ -13,11 +13,8 @@ listen {
 
 listen {
 	ipaddr = *
-#	ipv6addr = ::
 	port = 0
 	type = acct
-#	interface = eth0
-#	clients = per_socket_clients
 	limit {
 	}
 }
@@ -52,7 +49,6 @@ authorize {
 	suffix
 	eap {
 		ok = return
-#		updated = return
 	}
 
 	files

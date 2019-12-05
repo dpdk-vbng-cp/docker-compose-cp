@@ -17,16 +17,6 @@ ippool main_pool {
         #  Helper db index file used in multilink
         ip_index = ${db_dir}/db.ipmainindex
 
-        #  If set, the Framed-IP-Address already in the
-        #  reply (if any) will be discarded, and replaced
-        #  ith a Framed-IP-Address assigned here.
-        override = no
-
-        #  Specifies the maximum time in seconds that an
-        #  entry may be active.  If set to zero, means
-        #  "no timeout".  The default value is 0
-        maximum_timeout = 0
-
         #  The key to use for the session database (which
         #  holds the allocated ip's) normally it should
         #  just be the nas ip/port (which is the default).
