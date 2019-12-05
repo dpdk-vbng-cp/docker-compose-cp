@@ -100,7 +100,7 @@
       remote_src: yes
       directory_mode: yes
       force: yes
-
+  
   - name: "Assign ip pool for allocating ip addresses to clients: {{ cp_name }}"
     template:
       src: ippool.j2

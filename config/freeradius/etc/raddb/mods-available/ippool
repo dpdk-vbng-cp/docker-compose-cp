@@ -1,30 +1,3 @@
-# -*- text -*-
-#
-#  $Id: 1d3305ba45ec71336f55f8f1db05f183772e1b82 $
-
-#  Do server side ip pool management. Should be added in
-#  post-auth and accounting sections.
-#
-#  The module also requires the existence of the Pool-Name
-#  attribute. That way the administrator can add the Pool-Name
-#  attribute in the user profiles and use different pools for
-#  different users. The Pool-Name attribute is a *check* item
-#  not a reply item.
-#
-#  The Pool-Name should be set to the ippool module instance
-#  name or to DEFAULT to match any module.
-
-#
-# Example:
-# radiusd.conf: ippool students { [...] }
-#		ippool teachers { [...] }
-# users file  : DEFAULT Group == students, Pool-Name := "students"
-#		DEFAULT Group == teachers, Pool-Name := "teachers"
-#		DEFAULT	Group == other, Pool-Name := "DEFAULT"
-#
-# Note: If you change the range parameters you must then erase the
-#       db files.
-#
 ippool main_pool {
 	#  The main db file used to allocate addresses.
 	filename = ${db_dir}/db.ipmainpool
@@ -64,14 +37,3 @@ ippool main_pool {
 	#  is unique to each machine needing an IP address.
 	key = "%{NAS-IP-Address} %{NAS-Port}"
 }
-
-ippool secondary_pool {
-	    filename = ${raddbdir}/db.ipsecondarypool
-            range_start = 192.168.11.1
-            range_stop = 192.168.11.254
-            netmask = 255.255.255.0
-            cache_size = 254
-            ip_index = ${raddbdir}/db.ipsecondaryindex
-            override = no
-            maximum_timeout = 0
-    }
