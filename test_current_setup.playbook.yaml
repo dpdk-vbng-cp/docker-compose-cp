@@ -253,7 +253,6 @@
   - name: "set loopback of access4 up"  
     command: "ip netns exec access4 ip link set lo up"
 
-
   - name: "creating scripts folder for session establishment and traffic creation "  
     file:
       state: directory
