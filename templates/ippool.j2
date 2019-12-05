@@ -1,13 +1,3 @@
-# Example:
-# radiusd.conf: ippool students { [...] }
-#               ippool teachers { [...] }
-# users file  : DEFAULT Group == students, Pool-Name := "students"
-#               DEFAULT Group == teachers, Pool-Name := "teachers"
-#               DEFAULT Group == other, Pool-Name := "DEFAULT"
-#
-# Note: If you change the range parameters you must then erase the
-#       db files.
-#
 ippool main_pool {
         #  The main db file used to allocate addresses.
         filename = ${db_dir}/db.ipmainpool
