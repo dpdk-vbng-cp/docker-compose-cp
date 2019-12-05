@@ -50,6 +50,9 @@ services:
    volumes:
       - ./config/freeradius/etc/raddb/clients.conf:/etc/raddb/clients.conf:Z
       - ./config/freeradius/etc/raddb/mods-config/files/authorize:/etc/raddb/mods-config/files/authorize:Z
+      - ./config/freeradius/etc/raddb/radiusd.conf:/etc/raddb/radiusd.conf:Z
+      - ./config/freeradius/etc/raddb/mods-available/ippool:/etc/raddb/mods-available/ippool:Z
+      - ./config/freeradius/etc/raddb/sites-available/default:/etc/raddb/sites-available/default:Z
    command: -X
  telnet_downlink:
     build: ./telnet

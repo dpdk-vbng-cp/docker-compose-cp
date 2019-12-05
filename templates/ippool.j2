@@ -1,0 +1,29 @@
+ippool main_pool {
+        #  The main db file used to allocate addresses.
+        filename = ${db_dir}/db.ipmainpool
+
+        #  The start and end ip addresses for this pool.
+        range_start = {{ ip_range_start }}
+        range_stop = {{ ip_range_end }}
+
+        #  The network mask used for this pool.
+        netmask = 255.255.255.0
+
+        #  The gdbm cache size for the db files. Should
+        #  be equal to the number of ip's available in
+        #  the ip pool
+        cache_size = 17000
+
+        #  Helper db index file used in multilink
+        ip_index = ${db_dir}/db.ipmainindex
+
+        #  The key to use for the session database (which
+        #  holds the allocated ip's) normally it should
+        #  just be the nas ip/port (which is the default).
+        #
+        #  If your NAS sends the same value of NAS-Port
+        #  all requests, the key should be based on some
+        #  other attribute that is in ALL requests, AND
+        #  is unique to each machine needing an IP address.
+        key = "%{NAS-IP-Address} %{NAS-Port}"
+}
