@@ -18,7 +18,8 @@ CONFIG['telnet_host_uplink'] = '127.0.0.1'
 CONFIG['telnet_port_uplink'] = 8086
 CONFIG['telnet_host_downlink'] = '127.0.0.1'
 CONFIG['telnet_port_downlink'] = 8087
-gateway_address="aa:bb:cc:dd:ee:ff"
+gateway_address= "{{ gateway_address }}"
+up_pipe_out_src= "{{ up_pipe_out_src }}"
 
 
 def handle_message(d, telnet_sessions):
@@ -54,14 +55,14 @@ def send_uplink_message(d, telnet_sessions):
     send_telnet_command(direction, command, telnet_sessions)
     command = f'pipeline upstream|dscp table 0 rule add match acl priority 0 ipv4 {d["ip_addr"]} 32 0.0.0.0 0 0 65535 0 65535 17 action fwd port 0 dscp 46'
     send_telnet_command(direction, command, telnet_sessions)
-    command = f'pipeline upstream|routing table 0 rule add match acl priority 0 ipv4 {d["ip_addr"]} 32 0.0.0.0 0 0 65535 0 65535 17 action fwd port 0 encap ether {gateway_address} {d["called_station_id"]}'
+    command = f'pipeline upstream|routing table 0 rule add match acl priority 0 ipv4 {d["ip_addr"]} 32 0.0.0.0 0 0 65535 0 65535 17 action fwd port 0 encap ether {gateway_address} {up_pipe_out_src}'
     send_telnet_command(direction, command, telnet_sessions)
     
     end = timer()
     print("recorded time for writing upstream rules:")
     print (end-start)
     print (d["calling_station_id"])
-    print (d["called_station_id"])
+    print ("up_pipe_out_src")
     
 def send_downlink_message(d, telnet_sessions):
     print("############################################ DOWNSTREAM ####################################################################")
