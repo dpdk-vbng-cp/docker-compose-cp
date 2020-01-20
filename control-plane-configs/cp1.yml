@@ -1,7 +1,7 @@
 ---
 - accel_ppp_ip: 110.110.0.5
 - radius_ip: 110.110.0.7
-- mac_dl: 00:00:00:01:00:01 
+- mac_dl: 00:00:00:01:01:01 
 - ip_subnet: 110.110.0.0/16
 - ip_range_start: 192.51.0.2
 - ip_range_end: 192.51.15.254
@@ -21,6 +21,8 @@
 - interface_range: '{2..4002}'
 - vxlan_id: 100
 - vxlan_iface: vxlan100
+- gateway_address: "aa:bb:cc:dd:ee:5a"
+- up_pipe_out_src: "00:00:00:01:00:01"
 
 # The cp1 takes the arguments from this file, where all the 700 tagged traffic is allowed 
  

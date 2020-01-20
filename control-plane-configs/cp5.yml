@@ -13,6 +13,9 @@
 - interface_range: '{2..4002}'
 - vxlan_id: 300
 - vxlan_iface: vxlan300
+- gateway_address: "aa:bb:cc:dd:ee:7a"
+- up_pipe_out_src: "00:00:00:01:04:01"
+
 
 # Traffic with tag 1000
 - outer_tag: 707

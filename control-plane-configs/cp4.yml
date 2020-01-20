@@ -13,6 +13,8 @@
 - interface_range: '{2..4002}'
 - vxlan_id: 200
 - vxlan_iface: vxlan200
+- gateway_address: "aa:bb:cc:dd:ee:6b"
+- up_pipe_out_src: "00:00:00:01:02:00"
 
 # Traffic with tag 1000
 - outer_tag: 806
