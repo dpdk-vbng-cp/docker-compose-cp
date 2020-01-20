@@ -181,6 +181,11 @@
     command: "brctl addbr {{ bridge_to_cps }}"
     when: bridge_to_cps_exists is failed
 
+  - name: "enable stp on bridge {{ bridge_to_cps }}"
+    become: yes
+    command: "brctl stp {{ bridge_to_cps }} on"
+    when: bridge_to_cps_exists is failed
+
   - name: "set {{ item }} up"
     become: yes
     command: "ip l set {{ item }} up"

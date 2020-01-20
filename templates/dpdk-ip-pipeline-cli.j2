@@ -5,9 +5,9 @@ import json
 import socket
 import telnetlib
 import traceback
-
 import argparse
 import redis
+from timeit import default_timer as timer
 
 CONFIG = dict()
 CONFIG['debug'] = False
@@ -19,7 +19,9 @@ CONFIG['telnet_port_uplink'] = 8086
 CONFIG['telnet_host_downlink'] = '127.0.0.1'
 CONFIG['telnet_port_downlink'] = 8087
 gateway_address="aa:bb:cc:dd:ee:ff"
-def handle_message(d):
+
+
+def handle_message(d, telnet_sessions):
     # calling_station_id is ppp client
     # called_station_id is the pipeline/accel-ppp
     print(d['event'])
@@ -27,14 +29,16 @@ def handle_message(d):
         print('Event: session-starting')
     elif d['event'] == 'session-acct-start':
         print('Event: session-acct-start')
-        send_uplink_message(d)
-        send_downlink_message(d)
+        send_uplink_message(d, telnet_sessions)
+        send_downlink_message(d, telnet_sessions)
     elif d['event'] == 'session-pre-finished':
        print("Event: PPPOE - Remove Session and all the associated rules")
-       send_uplink_rule_delete(d)
-       send_downlink_rule_delete(d)
+       send_uplink_rule_delete(d, telnet_sessions)
+       send_downlink_rule_delete(d, telnet_sessions)
 
-def send_uplink_message(d):
+
+def send_uplink_message(d, telnet_sessions):
+    start = timer()
     print("############################################ UPSTREAM ####################################################################")
     direction = 'uplink'
     ctrl_ifname = d['ctrl_ifname']
@@ -45,22 +49,23 @@ def send_uplink_message(d):
     s_tag, c_tag = tags[1], tags[2]
     command = f'pipeline upstream|firewall table 0 rule add match acl priority 0 ipv4 {d["ip_addr"]} 32 0.0.0.0 0 0 65535 0 65535 17 action fwd port 0'
     print (d["ip_addr"])
-    send_telnet_command(direction, command)
-    command = f'pipeline upstream|firewall table 0 rule add match acl priority 0 ipv4 {d["ip_addr"]} 32 0.0.0.0 0 0 65535 0 65535 6 action fwd port 0'
-    send_telnet_command(direction, command)
+    send_telnet_command(direction, command, telnet_sessions)
     command = f'pipeline upstream|flow_clac table 0 rule add match hash qinq {s_tag} {c_tag} action fwd port 0 meter tc0 meter 0 policer g g y y r r'
-    send_telnet_command(direction, command)
+    send_telnet_command(direction, command, telnet_sessions)
     command = f'pipeline upstream|dscp table 0 rule add match acl priority 0 ipv4 {d["ip_addr"]} 32 0.0.0.0 0 0 65535 0 65535 17 action fwd port 0 dscp 46'
-    send_telnet_command(direction, command)
-    command = f'pipeline upstream|dscp table 0 rule add match acl priority 0 ipv4 {d["ip_addr"]} 32 0.0.0.0 0 0 65535 0 65535 6 action fwd port 0 dscp 46'
-    send_telnet_command(direction, command)
+    send_telnet_command(direction, command, telnet_sessions)
     command = f'pipeline upstream|routing table 0 rule add match acl priority 0 ipv4 {d["ip_addr"]} 32 0.0.0.0 0 0 65535 0 65535 17 action fwd port 0 encap ether {gateway_address} {d["called_station_id"]}'
-    send_telnet_command(direction, command)
-    command = f'pipeline upstream|routing table 0 rule add match acl priority 0 ipv4 {d["ip_addr"]} 32 0.0.0.0 0 0 65535 0 65535 6 action fwd port 0 encap ether {gateway_address} {d["called_station_id"]}'
-    send_telnet_command(direction, command)
-
-def send_downlink_message(d):
+    send_telnet_command(direction, command, telnet_sessions)
+    
+    end = timer()
+    print("recorded time for writing upstream rules:")
+    print (end-start)
+    print (d["calling_station_id"])
+    print (d["called_station_id"])
+    
+def send_downlink_message(d, telnet_sessions):
     print("############################################ DOWNSTREAM ####################################################################")
+    start = timer()
     direction = 'downlink'
     ctrl_ifname = d['ctrl_ifname']
     tags = ctrl_ifname.split(".")
@@ -69,18 +74,22 @@ def send_downlink_message(d):
         return
     s_tag, c_tag = tags[1], tags[2]
     command = f'pipeline downstream|firewall table 0 rule add match acl priority 0 ipv4 0.0.0.0 0 {d["ip_addr"]} 32 0 65535 0 65535 17 action fwd port 0'
-    send_telnet_command(direction, command)
-    command = f'pipeline downstream|firewall table 0 rule add match acl priority 0 ipv4 0.0.0.0 0 {d["ip_addr"]} 32 0 65535 0 65535 6 action fwd port 0'
-    send_telnet_command(direction, command)
+    send_telnet_command(direction, command, telnet_sessions)
     last = d["ip_addr"].split(".")[3]
     command = f'pipeline downstream|hqos table 0 rule add match lpm ipv4 {d["ip_addr"]} 32 action fwd port 0 tm subport 0 pipe {last}'
-    send_telnet_command(direction, command)
+    send_telnet_command(direction, command, telnet_sessions)
     command = f'pipeline downstream|routing table 0 rule add match acl priority 0 ipv4 0.0.0.0 0 {d["ip_addr"]} 32 0 65535 0 65535 17 action fwd port 0 encap qinq_pppoe {d["calling_station_id"]} {d["called_station_id"]} 7 0 {s_tag} 7 0 {c_tag} {d["pppoe_sessionid"]}'
-    send_telnet_command(direction, command)
+    send_telnet_command(direction, command, telnet_sessions)
+    
+    end = timer()
+    print("recorded time for writing downstream rules:")
+    print (end-start)
+    print (d["calling_station_id"])
+    print (d["called_station_id"])
 
-
-def send_uplink_rule_delete(d):
+def send_uplink_rule_delete(d, telnet_sessions):
     print("############################################ UPSTREAM ####################################################################")
+    start = timer()
     direction = 'uplink'
     ctrl_ifname = d['ctrl_ifname']
     tags = ctrl_ifname.split(".")
@@ -89,22 +98,22 @@ def send_uplink_rule_delete(d):
         return
     s_tag, c_tag = tags[1], tags[2]
     command = f'pipeline upstream|firewall table 0 rule delete match acl priority 0 ipv4 {d["ip_addr"]} 32 0.0.0.0 0 0 65535 0 65535 17'
-    send_telnet_command(direction, command)
-    command = f'pipeline upstream|firewall table 0 rule delete match acl priority 0 ipv4 {d["ip_addr"]} 32 0.0.0.0 0 0 65535 0 65535 6'
-    send_telnet_command(direction, command)
+    send_telnet_command(direction, command, telnet_sessions)
     command = f'pipeline upstream|flow_clac table 0 rule delete match hash qinq {s_tag} {c_tag}'
-    send_telnet_command(direction, command)
+    send_telnet_command(direction, command, telnet_sessions)
     command = f'pipeline upstream|dscp table 0 rule delete match acl priority 0 ipv4 {d["ip_addr"]} 32 0.0.0.0 0 0 65535 0 65535 17'
-    send_telnet_command(direction, command)
-    command = f'pipeline upstream|dscp table 0 rule delete match acl priority 0 ipv4 {d["ip_addr"]} 32 0.0.0.0 0 0 65535 0 65535 6'
-    send_telnet_command(direction, command)
+    send_telnet_command(direction, command, telnet_sessions)
     command = f'pipeline upstream|routing table 0 rule delete match acl priority 0 ipv4 {d["ip_addr"]} 32 0.0.0.0 0 0 65535 0 65535 17'
-    send_telnet_command(direction, command)
-    command = f'pipeline upstream|routing table 0 rule delete match acl priority 0 ipv4 {d["ip_addr"]} 32 0.0.0.0 0 0 65535 0 65535 6'
-    send_telnet_command(direction, command)
+    send_telnet_command(direction, command, telnet_sessions)
 
-def send_downlink_rule_delete(d):
+    end = timer()
+    print("recorded time for deleting upstream rules:")
+    print (end-start)
+
+
+def send_downlink_rule_delete(d, telnet_sessions):
     print("############################################ DOWNSTREAM ####################################################################")
+    start = timer()
     direction = 'downlink'
     ctrl_ifname = d['ctrl_ifname']
     tags = ctrl_ifname.split(".")
@@ -113,27 +122,42 @@ def send_downlink_rule_delete(d):
         return
     s_tag, c_tag = tags[1], tags[2]
     command = f'pipeline downstream|firewall table 0 rule delete match acl priority 0 ipv4 0.0.0.0 0 {d["ip_addr"]} 32 0 65535 0 65535 17'
-    send_telnet_command(direction, command)
-    command = f'pipeline downstream|firewall table 0 rule delete match acl priority 0 ipv4 0.0.0.0 0 {d["ip_addr"]} 32 0 65535 0 65535 6'
-    send_telnet_command(direction, command)
+    send_telnet_command(direction, command, telnet_sessions)
     last = d["ip_addr"].split(".")[3]
     command = f'pipeline downstream|hqos table 0 rule delete match lpm ipv4 {d["ip_addr"]} 32'
-    send_telnet_command(direction, command)
+    send_telnet_command(direction, command, telnet_sessions)
     command = f'pipeline downstream|routing table 0 rule delete match acl priority 0 ipv4 0.0.0.0 0 {d["ip_addr"]} 32 0 65535 0 65535 17'
-    send_telnet_command(direction, command)
+    send_telnet_command(direction, command, telnet_sessions)
+
+    end = timer()
+    print("recorded time for deleting downstream rules:")
+    print (end-start)
 
 
-def send_telnet_command(direction, command):
+def send_telnet_command(direction, command, telnet_sessions):
     command = command + "\n"
     command = command.encode('ascii')
     prompt = b">"
     print(f'Sending to {direction} the command {command}')
-    tn = telnetlib.Telnet()
-    tn.open(CONFIG['telnet_host_{}'.format(direction)], CONFIG['telnet_port_{}'.format(direction)])
-    print(tn.read_until(prompt))
+    #print(f'{telnet_sessions}')
+    tn = telnet_sessions[direction]
+    #print(tn.read_until(prompt))
     tn.write(command)
     print(tn.read_until(prompt))
+    return
 
+def create_telnet_sessions(tn={'uplink':None, 'downlink':None}):
+    """Creates two instances of telnet, one for each direction, 'uplink' and 'downlink'
+    returns a dictionary containing the two instances.
+    """
+    prompt = b">"
+    tn_uplink = telnetlib.Telnet()
+    tn_uplink.open(CONFIG['telnet_host_uplink'], CONFIG['telnet_port_uplink'])
+    print(tn_uplink.read_until(prompt))
+    tn_downlink = telnetlib.Telnet()
+    tn_downlink.open(CONFIG['telnet_host_downlink'], CONFIG['telnet_port_downlink'])
+    print(tn_downlink.read_until(prompt))
+    return {'uplink': tn_uplink, 'downlink': tn_downlink}
 
 def main():
     """ """
@@ -164,25 +188,27 @@ def main():
 
     redis_sub.subscribe(CONFIG['redis_channel'])
 
-    tn = dict()
-    for direction in ('uplink', 'downlink', ):
-        try:
-            tn[direction] = telnetlib.Telnet(CONFIG['telnet_host_{}'.format(direction)], CONFIG['telnet_port_{}'.format(direction)])
-        except socket.error as e:
-            traceback.print_exc()
+    #tn = dict()
+    #for direction in ('uplink', 'downlink', ):
+    #    try:
+    #        tn[direction] = telnetlib.Telnet(CONFIG['telnet_host_{}'.format(direction)], CONFIG['telnet_port_{}'.format(direction)])
+    #    except socket.error as e:
+    #        traceback.print_exc()
 
+    # Establish two telnet sessions, one for each direction, and pass them on to all functions.
+    telnet_sessions = create_telnet_sessions()
     keep_running = True
     while keep_running:
         try:
             for item in redis_sub.listen():
-                
+
                 s = item.get('data', {})
                 if isinstance(s, bytes):
                     s = s.decode('utf8').replace("'", '"')
                     try:
                         d = json.loads(s)
                         #print (d)
-                        handle_message(d)
+                        handle_message(d, telnet_sessions)
                     except ValueError as e:
                         if CONFIG['debug']:
                             traceback.print_exc()
@@ -209,5 +235,5 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
 
+    main()
