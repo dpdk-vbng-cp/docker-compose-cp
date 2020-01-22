@@ -15,6 +15,7 @@
 - vxlan_iface: vxlan400
 - gateway_address: "aa:bb:cc:dd:ee:8a"
 - up_pipe_out_src: "00:00:00:01:06:01"
+- up_gateway_ip: 218.1.0.1
 
 # Traffic with tag 1000
 - outer_tag: 708

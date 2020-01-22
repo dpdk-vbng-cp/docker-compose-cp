@@ -15,6 +15,7 @@
 - vxlan_iface: vxlan200
 - gateway_address: "aa:bb:cc:dd:ee:6a"
 - up_pipe_out_src: "00:00:00:01:02:01"
+- up_gateway_ip: 216.1.0.1
 
 # traffic with 900 tag 
 - outer_tag: 706

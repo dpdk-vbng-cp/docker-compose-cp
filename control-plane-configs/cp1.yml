@@ -23,6 +23,7 @@
 - vxlan_iface: vxlan100
 - gateway_address: "aa:bb:cc:dd:ee:5a"
 - up_pipe_out_src: "00:00:00:01:00:01"
+- up_gateway_ip: 215.1.0.1
 
 # The cp1 takes the arguments from this file, where all the 700 tagged traffic is allowed 
  
