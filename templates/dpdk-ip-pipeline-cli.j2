@@ -38,10 +38,11 @@ def handle_message(d, telnet_sessions):
        send_downlink_rule_delete(d, telnet_sessions)
 
 
-def send_routing_rule_for_4k (telnet_sessions):
-    print("############################################ 1 rule for 4k ####################################################################")
+def set_default_route (telnet_sessions):
+    print("############################################ set default route  ###################################")
     direction = 'uplink'
     command = f'pipeline upstream|routing table 0 rule add match lpm ipv4 {up_gateway_ip} 32 action fwd port 0 encap ether {gateway_address} {up_pipe_out_src}'
+    #command = f'pipeline upstream|routing table 0 rule add match lpm ipv4 default action fwd port 0 encap ether {gateway_address} {up_pipe_out_src}'
     send_telnet_command(direction, command, telnet_sessions)
     return
 
@@ -60,8 +61,8 @@ def send_uplink_message(d, telnet_sessions):
     send_telnet_command(direction, command, telnet_sessions)
     command = f'pipeline upstream|flow_clac table 0 rule add match hash qinq {s_tag} {c_tag} action fwd port 0 meter tc0 meter 0 policer g g y y r r'
     send_telnet_command(direction, command, telnet_sessions)
-    command = f'pipeline upstream|routing table 0 rule add match lpm ipv4 {up_gateway_ip} 32 action fwd port 0 encap ether {gateway_address} {up_pipe_out_src}'
-    send_telnet_command(direction, command, telnet_sessions)
+    #command = f'pipeline upstream|routing table 0 rule add match lpm ipv4 {up_gateway_ip} 32 action fwd port 0 encap ether {gateway_address} {up_pipe_out_src}'
+    #send_telnet_command(direction, command, telnet_sessions)
     
     #end = timer()
     #print("recorded time for writing upstream rules:")
@@ -107,8 +108,8 @@ def send_uplink_rule_delete(d, telnet_sessions):
     send_telnet_command(direction, command, telnet_sessions)
     command = f'pipeline upstream|flow_clac table 0 rule delete match hash qinq {s_tag} {c_tag}'
     send_telnet_command(direction, command, telnet_sessions)
-    command = f'pipeline upstream|routing table 0 rule delete match lpm ipv4 {up_gateway_ip} 32'
-    send_telnet_command(direction, command, telnet_sessions)
+    #command = f'pipeline upstream|routing table 0 rule delete match lpm ipv4 {up_gateway_ip} 32'
+    #send_telnet_command(direction, command, telnet_sessions)
 
     #end = timer()
     #print("recorded time for deleting upstream rules:")
@@ -121,7 +122,6 @@ def send_downlink_rule_delete(d, telnet_sessions):
     direction = 'downlink'
     command = f'pipeline downstream|firewall table 0 rule delete match acl priority 0 ipv4 0.0.0.0 0 {d["ip_addr"]} 32 0 65535 0 65535 17'
     send_telnet_command(direction, command, telnet_sessions)
-    last = d["ip_addr"].split(".")[3]
     command = f'pipeline downstream|hqos table 0 rule delete match lpm ipv4 {d["ip_addr"]} 32'
     send_telnet_command(direction, command, telnet_sessions)
     command = f'pipeline downstream|routing table 0 rule delete match lpm ipv4 {d["ip_addr"]} 32'
@@ -152,7 +152,6 @@ def create_telnet_sessions(tn={'uplink':None, 'downlink':None}):
     tn_uplink = telnetlib.Telnet()
     tn_uplink.open(CONFIG['telnet_host_uplink'], CONFIG['telnet_port_uplink'])
     print(tn_uplink.read_until(prompt))
-    #send_routing_rule_for_4k ('uplink')
     tn_downlink = telnetlib.Telnet()
     tn_downlink.open(CONFIG['telnet_host_downlink'], CONFIG['telnet_port_downlink'])
     print(tn_downlink.read_until(prompt))
@@ -196,6 +195,11 @@ def main():
 
     # Establish two telnet sessions, one for each direction, and pass them on to all functions.
     telnet_sessions = create_telnet_sessions()
+    #set route for default gateway
+    set_default_route(telnet_sessions)
+
+    # start reading events from redis
+    
     keep_running = True
     while keep_running:
         try:
