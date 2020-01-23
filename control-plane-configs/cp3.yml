@@ -1,7 +1,7 @@
 ---
 - accel_ppp_ip: 110.130.0.5
 - radius_ip: 110.130.0.7
-- mac_dl: 00:00:00:01:02:01
+- mac_dl: 00:00:00:01:03:01
 - ip_subnet: 110.130.0.0/16
 - ip_range_start: 192.61.0.2
 - ip_range_end: 192.61.15.254

@@ -61,7 +61,7 @@ def send_uplink_message(d, telnet_sessions):
     send_telnet_command(direction, command, telnet_sessions)
     command = f'pipeline upstream|flow_clac table 0 rule add match hash qinq {s_tag} {c_tag} action fwd port 0 meter tc0 meter 0 policer g g y y r r'
     send_telnet_command(direction, command, telnet_sessions)
-    #command = f'pipeline upstream|routing table 0 rule add match lpm ipv4 {up_gateway_ip} 32 action fwd port 0 encap ether {gateway_address} {up_pipe_out_src}'
+   # command = f'pipeline upstream|routing table 0 rule add match lpm ipv4 {up_gateway_ip} 32 action fwd port 0 encap ether {gateway_address} {up_pipe_out_src}'
     #send_telnet_command(direction, command, telnet_sessions)
     
     #end = timer()
