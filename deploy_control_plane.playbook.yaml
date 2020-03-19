@@ -181,10 +181,10 @@
     command: "brctl addbr {{ bridge_to_cps }}"
     when: bridge_to_cps_exists is failed
 
-  - name: "enable stp on bridge {{ bridge_to_cps }}"
-    become: yes
-    command: "brctl stp {{ bridge_to_cps }} on"
-    when: bridge_to_cps_exists is failed
+    #- name: "enable stp on bridge {{ bridge_to_cps }}"
+    #  become: yes
+    #  command: "brctl stp {{ bridge_to_cps }} on"
+    #  when: bridge_to_cps_exists is failed
 
   - name: "set {{ item }} up"
     become: yes
@@ -196,7 +196,7 @@
       - "{{ bridge_to_cps }}"
 
   - name: "check if {{ veth_iface }} is attached to br-{{ docker_br.stdout }}"
-    shell: "brctl show br-{{ docker_br.stdout }} | grep {{ veth_iface }}"
+    shell: "brctl show br-{{ docker_br.stdout }} | grep {{ 'veth_iface ' }}"
     register: veth_iface_attached_to_bridge
     ignore_errors: yes
 

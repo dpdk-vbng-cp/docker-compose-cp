@@ -73,3 +73,7 @@ networks:
         - subnet: {{ ip_subnet }}
   1_accel_network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: {{ ip_subnet_accel_network }}
+
