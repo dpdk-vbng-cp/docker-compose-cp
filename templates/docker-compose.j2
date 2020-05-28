@@ -1,27 +1,34 @@
 version: '2.4'
 services:
- dpdk-ip-pipeline-cli:
-    build: ./bng-utils/dpdk-ip-pipeline-cli
-    command: [ "--redis-host", "redis", "--redis-port", "6379", "--telnet-host-uplink", "{{ hostname_dataplane }}", "--telnet-port-uplink", "{{ dataplane_uplink_port }}", "--telnet-host-downlink", "{{ hostname_dataplane }}", "--telnet-port-downlink", "{{ dataplane_downlink_port }}" ]
-    depends_on:
-      - "redis"
-      - "telnet_downlink"
-      - "telnet_uplink"
-      - "accel-pppd"
-    networks:
-      - 0_default_network
-    restart: always
- redis:
-    image: "redis"
-    networks:
-      - 0_default_network
-    restart: always
+ #dpdk-ip-pipeline-cli:
+ #   build: ./bng-utils/dpdk-ip-pipeline-cli
+ #   command: [ "--redis-host", "redis", "--redis-port", "6379", "--telnet-host-uplink", "{{ hostname_dataplane }}", "--telnet-port-uplink", "{{ dataplane_uplink_port }}", "--telnet-host-downlink", "{{ hostname_dataplane }}", "--telnet-port-downlink", "{{ dataplane_downlink_port }}" ]
+ #   depends_on:
+ #     - "redis"
+ #     - "telnet_downlink"
+ #     - "telnet_uplink"
+ #     - "accel-pppd"
+ #   networks:
+ #     - 0_default_network
+ #   restart: always
+ #redis:
+ #   image: "redis"
+ #   networks:
+ #     - 0_default_network
+ #   restart: always
+ #   command: redis-server /usr/local/etc/redis/redis.conf
+ #   volumes:
+ #     - ./config/redis/redis.conf:/usr/local/etc/redis/redis.conf
+ #   ports:
+ #     - "6379:6379"
  accel-pppd:
     build: ./docker-accel-ppp/accel-pppd
     cap_add:
       - NET_ADMIN
     devices:
       - "/dev/ppp:/dev/ppp"
+    external_links:
+      - redis.container.local:redis
     networks:
       0_default_network:
         ipv4_address: {{ accel_ppp_ip }}
@@ -30,8 +37,8 @@ services:
         priority: 200
     mac_address: {{ mac_dl }}
     restart: always
-    depends_on:
-      - "redis"
+ #   depends_on:
+ #     - "redis"
     volumes:
       - /sbin/modprobe:/sbin/modprobe
       - ./config/accel-pppd/etc/accel-ppp.conf:/etc/accel-ppp.conf
@@ -54,16 +61,16 @@ services:
       - ./config/freeradius/etc/raddb/mods-available/ippool:/etc/raddb/mods-available/ippool:Z
       - ./config/freeradius/etc/raddb/sites-available/default:/etc/raddb/sites-available/default:Z
    command: -X
- telnet_downlink:
-    build: ./telnet
-    networks:
-      - 0_default_network
-    restart: always
- telnet_uplink:
-    build: ./telnet
-    networks:
-      - 0_default_network
-    restart: always
+# telnet_downlink:
+#    build: ./telnet
+#    networks:
+#      - 0_default_network
+#    restart: always
+# telnet_uplink:
+#    build: ./telnet
+#    networks:
+#      - 0_default_network
+#    restart: always
 
 networks:
   0_default_network:

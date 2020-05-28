@@ -66,10 +66,10 @@
     meta: reset_connection
     when: docker_user_add changed
 
-  - name: install the python3 redis module
-    pip:
-      name: redis
-      executable: pip3
+    #- name: install the python3 redis module
+    #  pip:
+    #    name: redis
+    #    executable: pip3
 
   - name: "stop and remove all docker containers for control-plane: {{ cp_name }}"
     docker_compose:
@@ -88,6 +88,60 @@
       - "{{ repo_clone_target }}"
       - "{{ repo_cp_copy }}"
     when: run_mode == "clean_deploy"
+
+  - name: Replace a localhost entry with our own
+    become: yes
+    lineinfile:
+      path: /etc/hosts
+      regexp: 'redis.container.local$'
+      line: "{{ ansible_default_ipv4.address }} redis.container.local"
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: "copy redis customized config file"
+    become: yes
+    template:
+      src: redis.j2
+      dest: "/etc/init/redis.conf"
+
+  - name: "start containerized redis with docker for all control plane"
+    docker_container:
+      name: redis.container.local
+      image: redis
+      #command: redis-server "~/redis.conf" --appendonly yes
+      command: redis-server /usr/local/etc/redis/redis.conf --appendonly yes
+      state: started
+      exposed_ports:
+        - "{{ ansible_default_ipv4.address }}:6379:6379/tcp"
+      volumes:
+        - ./redis.conf:/usr/local/etc/redis/redis.conf 
+      #recreate: yes
+  
+          #- name: clone pfcp git repo including all submodules
+          #  git:
+          #    repo: 'https://gitlab.bisdn.de/vBNG/bng-pfcp.git'
+          #    dest: "~/bng-pfcp"
+          #    recursive: yes
+          #    #force: yes
+
+          #- name: "Checkout pfcp-container branch for pfcpc container"
+          #  become: yes
+          #  command: "git checkout pfcp_container"
+          #  args:
+          #    chdir: "/root/bng-pfcp"
+          #
+          #- name: "generate Dockerfile for control plave pfcp container"
+          #  become: yes
+          #  template:
+          #    src: dockerfile_pfcpc.j2
+          #    dest: "~/bng-pfcp/Dockerfile"
+
+          #- name: "build docker pfcp image and run pfcpc container"
+          #  become: yes
+          #  command: "docker build -t pfcp-container . && docker run -ti --name pfcpc pfcp-container"
+          #  args:
+          #    chdir: "/root/bng-pfcp"
 
   - name: clone docker-compose-cp git repo including all submodules
     git:
@@ -183,6 +237,11 @@
     command: "brctl addbr {{ bridge_to_cps }}"
     when: bridge_to_cps_exists is failed
 
+    #- name: "enable stp on bridge {{ bridge_to_cps }}"
+    #  become: yes
+    #  command: "brctl stp {{ bridge_to_cps }} on"
+    #  when: bridge_to_cps_exists is failed
+
   - name: "set {{ item }} up"
     become: yes
     command: "ip l set {{ item }} up"
@@ -193,7 +252,7 @@
       - "{{ bridge_to_cps }}"
 
   - name: "check if {{ veth_iface }} is attached to br-{{ docker_br.stdout }}"
-    shell: "brctl show br-{{ docker_br.stdout }} | grep {{ veth_iface }}"
+    shell: "brctl show br-{{ docker_br.stdout }} | grep {{ 'veth_iface ' }}"
     register: veth_iface_attached_to_bridge
     ignore_errors: yes
 
