@@ -7,8 +7,9 @@ services:
     devices:
       - "/dev/ppp:/dev/ppp"
     external_links:
-      - redis.container.local:redis
+      - redis
     networks:
+      default:
       0_default_network:
         ipv4_address: {{ accel_ppp_ip }}
         priority: 100
@@ -40,6 +41,9 @@ services:
    command: -X
 
 networks:
+  default:
+    external:
+      name: bridge
   0_default_network:
     driver: bridge
     ipam:

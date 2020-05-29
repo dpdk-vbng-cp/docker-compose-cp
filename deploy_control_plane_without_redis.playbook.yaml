@@ -4,7 +4,7 @@
     repo_clone_target: "~/docker-compose-cp"
     repo_cp_copy: "~/{{ cp_name }}"
     run_mode: "deploy"
-  vars_files: 
+  vars_files:
     - "control-plane-configs/{{ cp_name }}.yml"
 
   tasks:
@@ -23,7 +23,7 @@
     become: yes
     apt:
       update_cache: yes
-      name: 
+      name:
       - apt-transport-https
       - ca-certificates
       - curl
@@ -49,7 +49,7 @@
 
   - name: install docker and docker-compose python modules
     pip:
-      name: 
+      name:
         - docker-compose
         - docker
       executable: pip3
@@ -66,10 +66,6 @@
     meta: reset_connection
     when: docker_user_add changed
 
-    #- name: install the python3 redis module
-    #  pip:
-    #    name: redis
-    #    executable: pip3
 
   - name: "stop and remove all docker containers for control-plane: {{ cp_name }}"
     docker_compose:
@@ -89,59 +85,15 @@
       - "{{ repo_cp_copy }}"
     when: run_mode == "clean_deploy"
 
-  - name: Replace a localhost entry with our own
-    become: yes
-    lineinfile:
-      path: /etc/hosts
-      regexp: 'redis.container.local$'
-      line: "{{ ansible_default_ipv4.address }} redis.container.local"
-      owner: root
-      group: root
-      mode: '0644'
-
-  - name: "copy redis customized config file"
-    become: yes
-    template:
-      src: redis.j2
-      dest: "/etc/init/redis.conf"
-
-  - name: "start containerized redis with docker for all control plane"
-    docker_container:
-      name: redis.container.local
-      image: redis
-      #command: redis-server "~/redis.conf" --appendonly yes
-      command: redis-server /usr/local/etc/redis/redis.conf --appendonly yes
-      state: started
-      exposed_ports:
-        - "{{ ansible_default_ipv4.address }}:6379:6379/tcp"
-      volumes:
-        - ./redis.conf:/usr/local/etc/redis/redis.conf 
-      #recreate: yes
-  
-          #- name: clone pfcp git repo including all submodules
-          #  git:
-          #    repo: 'https://gitlab.bisdn.de/vBNG/bng-pfcp.git'
-          #    dest: "~/bng-pfcp"
-          #    recursive: yes
-          #    #force: yes
-
-          #- name: "Checkout pfcp-container branch for pfcpc container"
-          #  become: yes
-          #  command: "git checkout pfcp_container"
-          #  args:
-          #    chdir: "/root/bng-pfcp"
-          #
-          #- name: "generate Dockerfile for control plave pfcp container"
-          #  become: yes
-          #  template:
-          #    src: dockerfile_pfcpc.j2
-          #    dest: "~/bng-pfcp/Dockerfile"
-
-          #- name: "build docker pfcp image and run pfcpc container"
-          #  become: yes
-          #  command: "docker build -t pfcp-container . && docker run -ti --name pfcpc pfcp-container"
-          #  args:
-          #    chdir: "/root/bng-pfcp"
+  # - name: Replace a localhost entry with our own
+  #   become: yes
+  #   lineinfile:
+  #     path: /etc/hosts
+  #     regexp: 'redis.container.local$'
+  #     line: "{{ ansible_default_ipv4.address }} redis.container.local"
+  #     owner: root
+  #     group: root
+  #     mode: '0644'
 
   - name: clone docker-compose-cp git repo including all submodules
     git:
@@ -156,16 +108,11 @@
       remote_src: yes
       directory_mode: yes
       force: yes
-  
+
   - name: "Assign ip pool for allocating ip addresses to clients: {{ cp_name }}"
     template:
       src: ippool.j2
       dest: "{{ repo_cp_copy }}/config/freeradius/etc/raddb/mods-available/ippool"
-
-  - name: "creating dpdk-pipeline rule file to dynamically change the installed rules{{ cp_name }}"
-    template:
-      src: dpdk-ip-pipeline-cli.j2
-      dest: "{{ repo_cp_copy }}/bng-utils/dpdk-ip-pipeline-cli/dpdk-ip-pipeline-cli.py"
 
   - name: "generate docker-compose.yml config for control plane: {{ cp_name }}"
     template:
@@ -191,7 +138,7 @@
     template:
       src: docker-entrypoint.j2
       dest: "{{ repo_cp_copy }}/docker-accel-ppp/accel-pppd/docker-entrypoint.sh"
-      
+
       # - name: "build the accel-ppp module for control plane: {{ cp_name }}"
       #   make:
       #     chdir: "{{ repo_cp_copy }}/docker-accel-ppp"

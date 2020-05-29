@@ -1,0 +1,12 @@
+{
+    "bngc_ip" : "{{ bngc_ip }}",
+    "redis_server_ip" : "{{ redis_host }}",
+    "redis_server_port" : {{ redis_port }},
+    "bngu_endpoints" : [
+{% for key, value in bngu_endpoints.items() %}
+        {{ value }}
+{%- if not loop.last %},{% endif %}
+
+{% endfor %}
+    ]
+}
