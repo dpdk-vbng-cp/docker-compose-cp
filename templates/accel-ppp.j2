@@ -44,7 +44,7 @@ verbose=1
 
 [pppoe]
 verbose=1
-# Need to keep only mac because the "called-sid" value is 
+# Need to keep only mac because the "called-sid" value is
 # matched on the ip-pipeline data-plane: Taushif MD
 called-sid=mac
 interface=re:^eth1\.([1-4]0[9][0-4]|[1-4]0[0-8][0-9]|[1-3][0-9]{3}|[1-9][0-9]{2}|[1-9][0-9]|[0-9])\.([1-4]0[9][0-4]|[1-4]0[0-8][0-9]|[1-3][0-9]{3}|[1-9][0-9]{2}|[1-9][0-9]|[0-9])$
@@ -63,6 +63,7 @@ verbose=1
 gw-ip-address={{ accel_ppp_ip }}
 nas-ip-address= {{ accel_ppp_ip }}
 nas-port=ifname
+nas-identifier={{ nas_identifier }}
 server={{ radius_ip }},SECRET,auth-port=1812,acct-port=1813,req-limit=50,fail-timeout=0,max-fail=10,weight=1
 verbose=1
 
