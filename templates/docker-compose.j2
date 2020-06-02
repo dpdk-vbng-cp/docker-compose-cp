@@ -9,7 +9,7 @@ services:
     external_links:
       - redis
     networks:
-      default:
+      inter_net:
       0_default_network:
         ipv4_address: {{ accel_ppp_ip }}
         priority: 100
@@ -41,9 +41,9 @@ services:
    command: -X
 
 networks:
-  default:
+  inter_net:
     external:
-      name: bridge
+      name: {{ docker_network_name }}
   0_default_network:
     driver: bridge
     ipam:
@@ -51,3 +51,6 @@ networks:
         - subnet: {{ ip_subnet }}
   1_accel_network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: {{ ip_subnet_accel_network }}

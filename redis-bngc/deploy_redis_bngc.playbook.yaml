@@ -1,89 +1,16 @@
 ---
 - hosts: all
+  vars:
+    # bngc_ip_addr can be set to the same address as the host or to a new one
+    # in the same subnet
+    bngc_ip_addr: "{{ ansible_default_ipv4.address }}"
+    # bngc_ip_addr: "10.0.100.221"
+    net_mask: "{{ ansible_default_ipv4.network }}/{{ ansible_default_ipv4.netmask }}"
+    net_prefix: "{{ net_mask | ipaddr('prefix') }}"
+    host_interface: "{{ ansible_default_ipv4.interface }}"
+
   tasks:
-  # - name: add Docker’s official GPG key and adding the apt repo
-  #   become: yes
-  #   apt_key:
-  #     url: https://download.docker.com/linux/ubuntu/gpg
-  #     state: present
-
-  # - name: add official docker repository for bionic to apt sources
-  #   become: yes
-  #   apt_repository:
-  #     repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
-
-  # - name: update apt cache and install required packages (including docker)
-  #   become: yes
-  #   apt:
-  #     update_cache: yes
-  #     name:
-  #     - apt-transport-https
-  #     - ca-certificates
-  #     - curl
-  #     - gnupg-agent
-  #     - software-properties-common
-  #     - virtualenv
-  #     - python3-setuptools
-  #     - aptitude
-  #     - docker-ce
-  #     - docker-ce-cli
-  #     - containerd.io
-  #     - python3-pip
-  #     - bridge-utils
-  #     - linux-headers-generic
-  #     - build-essential
-
-  # - name: download and add docker-compose from github to /usr/bin
-  #   become: yes
-  #   get_url:
-  #     url: https://github.com/docker/compose/releases/download/1.24.1/docker-compose-Linux-x86_64
-  #     dest: /usr/bin/docker-compose
-  #     mode: 0755
-
-  # - name: install docker and docker-compose python modules
-  #   pip:
-  #     name:
-  #       - docker-compose
-  #       - docker
-  #     executable: pip3
-
-  # - name: "add the user {{ ansible_user_id }} to the group 'docker'"
-  #   become: yes
-  #   user:
-  #     name: "{{ ansible_user_id }}"
-  #     groups: docker
-  #     append: yes
-  #   register: docker_user_add
-
-  # - name: Reset ssh connection to allow user changes to affect 'current login user'
-  #   meta: reset_connection
-  #   when: docker_user_add changed
-
-
-
-
-
-  # - name: "clean up directories {{ repo_clone_target }} and {{ repo_cp_copy }}"
-  #   become: yes
-  #   file:
-  #     path: "{{ item }}"
-  #     state: absent
-  #   with_items:
-  #     - "{{ repo_clone_target }}"
-  #     - "{{ repo_cp_copy }}"
-  #   when: run_mode == "clean_deploy"
-
-  # - name: Replace a localhost entry with our own
-  #   become: yes
-  #   lineinfile:
-  #     path: /etc/hosts
-  #     regexp: 'redis.container.local$'
-  #     line: "{{ ansible_default_ipv4.address }} redis.container.local"
-  #     owner: root
-  #     group: root
-  #     mode: '0644'
-
-  - name: Create bng_cp folder for redis/bngc files
+  - name: "Create bng_cp folder for redis/bngc files"
     become: yes
     file:
       path: "/etc/bng_cp/"
@@ -102,15 +29,6 @@
     template:
       src: bngc.j2
       dest: "/etc/bng_cp/bngc.json"
-    vars:
-      bngc_ip: "{{ ansible_default_ipv4.address }}"
-
-  # - name: "copy docker-compose.yml to /etc/bng_cp/docker-compose.yml in host"
-  #   become: yes
-  #   copy:
-  #     src: "docker-compose.yml"
-  #     dest: "/etc/bng_cp"
-  #     force: yes
 
   - name: "stop and remove redis docker container for bngc control plane"
     #become: yes
@@ -119,20 +37,43 @@
       name: redis
     when: run_mode == "clean_deploy"
 
+  - name: "Create docker internal network for inter-container communication"
+    docker_network:
+      name: "{{ docker_network_name }}"
+      ipam_config:
+        - subnet: "{{ docker_subnet }}"
+
   - name: "start containerized redis with docker for all control plane"
     #become: yes
     docker_container:
       name: redis
       image: "redis:alpine"
       command: redis-server /usr/local/etc/redis/redis.conf --appendonly yes
+      ports: "{{ redis_port }}:{{ redis_port }}"
       state: started
       volumes:
         - /etc/bng_cp/redis.conf:/usr/local/etc/redis/redis.conf
+      networks:
+        - name: "{{ docker_network_name }}"
 
-  # - name: "start containerized control plane with docker-compose"
-  #   become: yes
-  #   docker_compose:
-  #     project_src: "/etc/bng_cp/"
-  #     nocache: yes
-  #     dependencies: no
+  - name: "stop and remove PFCP BNG CP docker container"
+    docker_container:
+      state: absent
+      name: "pfcp-bng-cp"
+    when: run_mode == "clean_deploy"
 
+  - name: "Start PFCP BNG CP application container"
+    docker_container:
+      name: "pfcp-bng-cp"
+      image: "bisdn/pfcp-bng-cp"
+      network_mode: host
+      capabilities:
+        - "SYS_NICE"
+        # - "NET_ADMIN" # Uncomment to have permission to add address below
+      env:
+        # Uncomment these variables to add the BNGC_IP address to BNGC_HOST_INTERFACE
+        # BNGC_IP: "{{ bngc_ip_addr }}"
+        # BNGC_NETMASK_BITS: "{{ net_prefix }}"
+        # BNGC_HOST_INTERFACE: "{{ host_interface }}"
+      volumes:
+        - /etc/bng_cp/bngc.json:/opt/bng-pfcp/build/bngc/build/bngc.json

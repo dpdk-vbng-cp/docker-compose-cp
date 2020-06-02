@@ -1,9 +1,10 @@
 ---
 - hosts: all
   vars:
-    repo_clone_target: "~/docker-compose-cp"
-    repo_cp_copy: "~/{{ cp_name }}"
+    repo_clone_target: "/home/ubuntu/docker-compose-cp"
+    repo_cp_copy: "/home/ubuntu/{{ cp_name }}"
     run_mode: "deploy"
+    git_repo: "accel-pppd-nas-id"
   vars_files:
     - "control-plane-configs/{{ cp_name }}.yml"
 
@@ -66,7 +67,6 @@
     meta: reset_connection
     when: docker_user_add changed
 
-
   - name: "stop and remove all docker containers for control-plane: {{ cp_name }}"
     docker_compose:
       state: absent
@@ -85,21 +85,12 @@
       - "{{ repo_cp_copy }}"
     when: run_mode == "clean_deploy"
 
-  # - name: Replace a localhost entry with our own
-  #   become: yes
-  #   lineinfile:
-  #     path: /etc/hosts
-  #     regexp: 'redis.container.local$'
-  #     line: "{{ ansible_default_ipv4.address }} redis.container.local"
-  #     owner: root
-  #     group: root
-  #     mode: '0644'
-
   - name: clone docker-compose-cp git repo including all submodules
     git:
       repo: 'https://github.com/dpdk-vbng-cp/docker-compose-cp.git'
       dest: "{{ repo_clone_target }}"
       recursive: yes
+      version: "{{ git_repo }}"
 
   - name: "copy control plane git repo for specific modification for {{ cp_name }}"
     copy:
