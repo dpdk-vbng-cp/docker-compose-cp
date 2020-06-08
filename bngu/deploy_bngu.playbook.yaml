@@ -1,0 +1,85 @@
+---
+- hosts: all
+  vars:
+    # bngu_ip_addr can be set to the same address as the host or to a new one
+    # in the same subnet
+    # bngu_ip_addr: "{{ ansible_default_ipv4.address }}"
+    bngu_ip_addr: "10.0.100.221"
+    net_mask: "{{ ansible_default_ipv4.network }}/{{ ansible_default_ipv4.netmask }}"
+    net_prefix: "{{ net_mask | ipaddr('prefix') }}"
+    host_interface: "{{ ansible_default_ipv4.interface }}"
+  tasks:
+  - name: update apt cache and install required packages (including docker)
+    become: yes
+    apt:
+      update_cache: yes
+      name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg-agent
+      - software-properties-common
+      - virtualenv
+      - python3-setuptools
+      - aptitude
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - python3-pip
+      - bridge-utils
+      - linux-headers-generic
+      - build-essential
+
+  - name: install docker and docker-compose python modules
+    pip:
+      name:
+        - docker-compose
+        - docker
+      executable: pip3
+
+  - name: "add the user {{ ansible_user_id }} to the group 'docker'"
+    become: yes
+    user:
+      name: "{{ ansible_user_id }}"
+      groups: docker
+      append: yes
+    register: docker_user_add
+
+  - name: Reset ssh connection to allow user changes to affect 'current login user'
+    meta: reset_connection
+    when: docker_user_add changed
+
+  - name: "Create bng_up folder for bngu files"
+    become: yes
+    file:
+      path: "/etc/bng_up/"
+      state: directory
+      mode: '0755'
+
+  - name: "generate bngu.json config for PFCP user plane application"
+    become: yes
+    template:
+      src: bngu.j2
+      dest: "/etc/bng_up/bngu.json"
+
+  - name: "stop and remove PFCP BNG UP docker container"
+    docker_container:
+      state: absent
+      name: "pfcp-bng-up"
+    when: run_mode == "clean_deploy"
+
+  - name: "Start PFCP BNG UP application container"
+    docker_container:
+      name: "pfcp-bng-up"
+      image: "bisdn/pfcp-bng-up"
+      network_mode: host
+      capabilities:
+        - "SYS_NICE"
+        - "NET_ADMIN" # Uncomment to have permission to add address below
+      env:
+        # Uncomment these variables to add the BNGU_IP address to BNGU_HOST_INTERFACE
+        BNGU_IP: "{{ bngu_ip_addr }}"
+        BNGU_NETMASK_BITS: "{{ net_prefix }}"
+        BNGU_HOST_INTERFACE: "{{ host_interface }}"
+      volumes:
+        - /etc/bng_up/bngu.json:/opt/bng-pfcp/build/bngu/build/bngu.json
