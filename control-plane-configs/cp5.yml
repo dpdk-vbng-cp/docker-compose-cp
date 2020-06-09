@@ -1,0 +1,31 @@
+---
+- accel_ppp_ip: 110.150.0.5
+- nas_identifier: "nas5"
+- radius_ip: 110.150.0.7
+- mac_dl: 00:00:00:01:04:00
+- ip_subnet: 110.150.0.0/16
+- ip_subnet_accel_network: 172.80.0.0/16
+- ip_range_start: 192.51.64.2
+- ip_range_end: 192.51.79.254
+
+# Inter-container network to use with accel-pppd instead of default docker bridge
+- docker_network_name: "inter_container"
+
+- telnet_port: 10000
+- tcp_port: 10001
+- hostname_dataplane: "podwhale4.lab.bisdn.de"
+  #- dataplane_uplink_port: 8114
+  #- dataplane_downlink_port: 8106
+- interface_range: '{2..4094}'
+- vxlan_id: 300
+- vxlan_iface: vxlan300
+- gateway_address: "aa:bb:cc:dd:ee:3a"
+- up_pipe_out_src: "00:00:00:01:04:01"
+- up_gateway_ip: 213.1.0.1
+
+# Traffic with tag 1000
+- outer_tag: 703
+- veth_iface: veth8
+- veth_peer: veth9
+- bridge_to_cps: br2
+...
