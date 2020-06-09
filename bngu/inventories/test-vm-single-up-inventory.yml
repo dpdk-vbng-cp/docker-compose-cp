@@ -1,0 +1,21 @@
+---
+all:
+  hosts:
+    p4rt-test-2:
+  vars:
+    run_mode: "deploy"
+    dpdk_host: "podwhale4.lab.bisdn.de"
+    upstream_dpdk_host: "{{ dpdk_host }}"
+    downstream_dpdk_host: "{{ dpdk_host }}"
+    bngc_ip_addr: "10.0.100.76"
+
+    up_instances:
+      # 1
+      - container_name: "pfcp-bng-up-1"
+        bngu_ip_addr: "10.0.100.221"
+        upstream_dpdk_port: 8110
+        downstream_dpdk_port: 8102
+        gateway_mac_address: "aa:bb:cc:dd:ee:1a"
+        gateway_ip_address: "211.1.0.1"
+        downstream_mac_address: "00:00:00:01:00:01"
+
