@@ -10,12 +10,57 @@ all:
     docker_subnet: "172.240.1.0/24"
     redis_host: localhost
     redis_port: 6379
+    bngc_ip_addr: "192.168.10.100"
+    net_prefix: "24"
+
     bngu_endpoints:
       bngu1:
-        bngu_ip: "172.16.101.20"
+        bngu_ip: "192.168.10.101"
         nas_id: "nas1"
       bngu2:
-        bngu_ip: "172.16.101.21"
+        bngu_ip: "192.168.10.102"
         nas_id: "nas2"
+      bngu3:
+        bngu_ip: "192.168.10.103"
+        nas_id: "nas3"
+      bngu4:
+        bngu_ip: "192.168.10.104"
+        nas_id: "nas4"
+      bngu5:
+        bngu_ip: "192.168.10.105"
+        nas_id: "nas5"
+      bngu6:
+        bngu_ip: "192.168.10.106"
+        nas_id: "nas6"
+      bngu7:
+        bngu_ip: "192.168.10.107"
+        nas_id: "nas7"
+      bngu8:
+        bngu_ip: "192.168.10.108"
+        nas_id: "nas8"
+      bngu9:
+        bngu_ip: "192.168.10.109"
+        nas_id: "nas9"
+      bngu10:
+        bngu_ip: "192.168.10.110"
+        nas_id: "nas10"
+      bngu11:
+        bngu_ip: "192.168.10.111"
+        nas_id: "nas11"
+      bngu12:
+        bngu_ip: "192.168.10.112"
+        nas_id: "nas12"
+      bngu13:
+        bngu_ip: "192.168.10.113"
+        nas_id: "nas13"
+      bngu14:
+        bngu_ip: "192.168.10.114"
+        nas_id: "nas14"
+      bngu15:
+        bngu_ip: "192.168.10.115"
+        nas_id: "nas15"
+      bngu16:
+        bngu_ip: "192.168.10.116"
+        nas_id: "nas16"
 
 

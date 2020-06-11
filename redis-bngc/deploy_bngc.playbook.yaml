@@ -54,6 +54,7 @@
   - name: Reset ssh connection to allow user changes to affect 'current login user'
     meta: reset_connection
     when: docker_user_add changed
+
   - name: "Create bng_cp folder for redis/bngc files"
     become: yes
     file:
@@ -62,47 +63,11 @@
       mode: '0755'
     when: run_mode == "deploy" or run_mode == "clean_deploy"
 
-  - name: "copy redis.conf to /etc/bng_cp/redis.conf in host"
-    become: yes
-    copy:
-      src: "redis.conf"
-      dest: "/etc/bng_cp/"
-      force: yes
-    when: run_mode == "deploy" or run_mode == "clean_deploy"
-
   - name: "generate bngc.json config for PFCP control plane application"
     become: yes
     template:
       src: bngc.j2
       dest: "/etc/bng_cp/bngc.json"
-    when: run_mode == "deploy" or run_mode == "clean_deploy"
-
-  - name: "stop and remove redis docker container for bngc control plane"
-    #become: yes
-    docker_container:
-      state: absent
-      name: redis
-    when: run_mode == "clean_deploy" or run_mode == "clean"
-
-  - name: "Create docker internal network for inter-container communication"
-    docker_network:
-      name: "{{ docker_network_name }}"
-      ipam_config:
-        - subnet: "{{ docker_subnet }}"
-    when: run_mode == "deploy" or run_mode == "clean_deploy"
-
-  - name: "start containerized redis with docker for all control plane"
-    #become: yes
-    docker_container:
-      name: redis
-      image: "redis:alpine"
-      command: redis-server /usr/local/etc/redis/redis.conf --appendonly yes
-      ports: "{{ redis_port }}:{{ redis_port }}"
-      state: started
-      volumes:
-        - /etc/bng_cp/redis.conf:/usr/local/etc/redis/redis.conf
-      networks:
-        - name: "{{ docker_network_name }}"
     when: run_mode == "deploy" or run_mode == "clean_deploy"
 
   - name: "stop and remove PFCP BNG CP docker container"
