@@ -4,15 +4,17 @@ all:
     p4rt-test-2:
   vars:
     run_mode: "deploy"
+    ansible_python_interpreter: "/usr/bin/python3"
     dpdk_host: "podwhale4.lab.bisdn.de"
     upstream_dpdk_host: "{{ dpdk_host }}"
     downstream_dpdk_host: "{{ dpdk_host }}"
-    bngc_ip_addr: "10.0.100.76"
+    bngc_ip_addr: "192.168.10.100"
+    net_prefix: "24"
 
     up_instances:
       # 1
       - container_name: "pfcp-bng-up-1"
-        bngu_ip_addr: "10.0.100.221"
+        bngu_ip_addr: "192.168.10.101"
         upstream_dpdk_port: 8110
         downstream_dpdk_port: 8102
         gateway_mac_address: "aa:bb:cc:dd:ee:1a"

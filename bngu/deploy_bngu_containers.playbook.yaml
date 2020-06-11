@@ -1,10 +1,6 @@
 ---
 - hosts: all
   vars:
-    # bngu_ip_addr can be set to the same address as the host or to a new one
-    # in the same subnet
-    net_mask: "{{ ansible_default_ipv4.network }}/{{ ansible_default_ipv4.netmask }}"
-    net_prefix: "{{ net_mask | ipaddr('prefix') }}"
     host_interface: "{{ ansible_default_ipv4.interface }}"
   tasks:
   - name: update apt cache and install required packages (including docker)
@@ -53,6 +49,7 @@
       path: "/etc/bng_up/"
       state: directory
       mode: '0755'
+    when: run_mode == "deploy" or run_mode == "clean_deploy"
 
   - name: "Generate PFCP BNG user plane configuration files"
     become: yes
@@ -67,13 +64,21 @@
       gateway_ip_address: "{{ item.gateway_ip_address }}"
       downstream_mac_address: "{{ item.downstream_mac_address }}"
     with_items: "{{ up_instances }}"
+    when: run_mode == "deploy" or run_mode == "clean_deploy"
 
   - name: "stop and remove PFCP BNG UP docker containers"
     docker_container:
       state: absent
       name: "{{ item.container_name }}"
-    when: run_mode == "clean_deploy"
     with_items: "{{ up_instances }}"
+    when: run_mode == "clean_deploy" or run_mode == "clean"
+
+  - name: "remove secondary IP Addresses created by PFCP BNG UP"
+    become: yes
+    command: "ip a del {{ item.bngu_ip_addr }}/{{ net_prefix }} dev {{ host_interface }}"
+    with_items: "{{ up_instances }}"
+    ignore_errors: yes
+    when: run_mode == "clean_deploy" or run_mode == "clean"
 
   - name: "Start PFCP BNG UP application containers"
     docker_container:
@@ -90,3 +95,4 @@
       volumes:
         - /etc/bng_up/{{ item.container_name }}.json:/opt/bng-pfcp/build/bngu/build/bngu.json
     with_items: "{{ up_instances }}"
+    when: run_mode == "deploy" or run_mode == "clean_deploy"

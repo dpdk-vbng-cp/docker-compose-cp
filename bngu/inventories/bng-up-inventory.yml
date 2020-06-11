@@ -1,11 +1,11 @@
 ---
 all:
   hosts:
-    p4rt-test-2:
+    podwhale4.lab.bisdn.de:
   vars:
     run_mode: "deploy"
     ansible_python_interpreter: "/usr/bin/python3"
-    dpdk_host: "podwhale4.lab.bisdn.de"
+    dpdk_host: "localhost"
     upstream_dpdk_host: "{{ dpdk_host }}"
     downstream_dpdk_host: "{{ dpdk_host }}"
     bngc_ip_addr: "192.168.10.100"
