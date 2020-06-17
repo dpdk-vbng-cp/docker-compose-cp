@@ -1,5 +1,0 @@
-[all]
-podwhale2.lab.bisdn.de hostname_dataplane=podwhale4.lab.bisdn.de
-
-[all:vars]
-ansible_python_interpreter=/usr/bin/python3

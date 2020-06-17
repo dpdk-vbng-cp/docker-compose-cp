@@ -7,11 +7,35 @@
     setup_pfcp_cp: "no"
     setup_accel_pppd: "yes"
 
-
   tasks:
   - name: "Set up docker environment"
     include_tasks: setup_docker_env_tasks.yaml
     when: setup_docker == "yes"
+
+  - name: "Remove docker internal network for inter-container communication"
+    docker_network:
+      name: "{{ docker_network_name }}"
+      state: absent
+    when: run_mode == "clean" or run_mode == "clean_deploy"
+
+  - name: "Create docker internal network for inter-container communication"
+    docker_network:
+      name: "{{ docker_network_name }}"
+      ipam_config:
+        - subnet: "{{ docker_subnet }}"
+    when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+  - name: "Create bng_cp folder to store CP config files"
+    become: yes
+    file:
+      path: "/etc/bng_cp/"
+      state: directory
+      mode: '0755'
+    when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+  - name: "Set up redis server container"
+    include_tasks: setup_redis_tasks.yaml
+    when: setup_redis == "yes"
 
     # This is done to avoid the next task to loop necessarily over the cp_instances variable
   - name: "Define accel_pppd_instances list when setup_accel_pppd is true"
