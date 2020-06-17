@@ -1,0 +1,225 @@
+---
+####################################################################
+#### Cleanup
+####################################################################
+- name: "stop and remove freeradius and accel-pppd container {{ cp_n }}"
+  docker_container:
+    state: absent
+    name: "{{ item }}-{{ cp_n }}"
+  loop:
+    - "accel-pppd"
+    - "freeradius"
+  when: run_mode == "clean_deploy" or run_mode == "clean"
+
+- name: "clean up directory {{ cp_dir }}"
+  become: yes
+  file:
+    path: "{{ cp_dir }}"
+    state: absent
+  when: run_mode == "clean_deploy" or run_mode == "clean"
+
+- name: "Deleting cp{{ cp_n }}_accel_network"
+  docker_network:
+    name: "cp{{ cp_n }}_accel_network"
+    state: absent
+  when: run_mode == "clean_deploy" or run_mode == "clean"
+
+
+####################################################################
+#### cp config directory creation
+####################################################################
+- name: "Create bng_cp subfolders for accel-pppd/freeradius files"
+  become: yes
+  file:
+    path: "{{ cp_dir }}/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "accel-pppd"
+    - "freeradius"
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+####################################################################
+#### radius configuration files
+####################################################################
+- name: "copy freeradius/ to {{ cp_dir }}/freeradius/ in host"
+  become: yes
+  copy:
+    src: "freeradius/"
+    dest: "{{ cp_dir }}/freeradius/"
+    force: yes
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "Assign ip pool for allocating ip addresses to clients in radius: {{ cp_n }}"
+  become: yes
+  template:
+    src: ippool.j2
+    dest: "{{ cp_dir }}/freeradius/ippool"
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "generate clients.conf for radius authentication for control plane: {{ cp_n }}"
+  become: yes
+  template:
+    src: clients.j2
+    dest: "{{ cp_dir }}/freeradius/clients.conf"
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+####################################################################
+#### accel-pppd configuration files
+####################################################################
+- name: "generate accel-ppp.conf config for control plane: {{ cp_n }}"
+  become: yes
+  template:
+    src: accel-ppp.j2
+    dest: "{{ cp_dir }}/accel-pppd/accel-ppp.conf"
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "copy accel-ppp/docker-entrypoint.sh to {{ cp_dir }}/accel-pppd/ in host"
+  become: yes
+  copy:
+    src: "accel-pppd/docker-entrypoint.sh"
+    dest: "{{ cp_dir }}/accel-pppd/"
+    force: yes
+    mode: 0755
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+####################################################################
+#### create network
+####################################################################
+- name: "Create cp{{ cp_n }}_accel_network for bridging accel-ppp and data plane"
+  docker_network:
+    name: "cp{{ cp_n }}_accel_network"
+    ipam_config:
+      - subnet: "{{ ip_subnet_accel_network }}"
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+####################################################################
+#### start docker containers
+####################################################################
+- name: "Start accel-pppd-{{ cp_n }} container for CP {{ cp_n }}"
+  docker_container:
+    name: "accel-pppd-{{ cp_n }}"
+    image: "bisdn/accel-pppd"
+    capabilities:
+      - "NET_ADMIN"
+    devices:
+      - "/dev/ppp:/dev/ppp"
+    networks:
+      - name: "{{ docker_network_name }}"
+        ipv4_address: "{{ accel_ppp_ip }}"
+      - name: "cp{{ cp_n }}_accel_network"
+   # mac_address: "{{ mac_dl }}"
+    volumes:
+      - /sbin/modprobe:/sbin/modprobe
+      - "{{ cp_dir }}/accel-pppd/accel-ppp.conf:/etc/accel-ppp.conf"
+      - "{{ cp_dir }}/accel-pppd/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh"
+    env:
+      IFACE: "eth1"
+      OUTER_PROTO: "802.1Q"
+      OUTER_TAG: "{{ outer_tag }}"
+      INNER_PROTO: "802.1Q"
+      MAC_ADDRESS: "{{ mac_dl }}"
+    exposed_ports:
+      - "{{ telnet_port }}/tcp"
+      - "{{ tcp_port }}/tcp"
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "Start freeradius-{{ cp_n }} container for CP {{ cp_n }}"
+  docker_container:
+    name: "freeradius-{{ cp_n }}"
+    image: "freeradius/freeradius-server"
+    networks:
+      - name: "{{ docker_network_name }}"
+        ipv4_address: "{{ radius_ip }}"
+    volumes:
+      - "{{ cp_dir }}/freeradius/clients.conf:/etc/raddb/clients.conf:Z"
+      - "{{ cp_dir }}/freeradius/mods-config/files/authorize:/etc/raddb/mods-config/files/authorize:Z"
+      - "{{ cp_dir }}/freeradius/radiusd.conf:/etc/raddb/radiusd.conf:Z"
+      - "{{ cp_dir }}/freeradius/ippool:/etc/raddb/mods-available/ippool:Z"
+      - "{{ cp_dir }}/freeradius/sites-available/default:/etc/raddb/sites-available/default:Z"
+    command: -X
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+####################################################################
+#### network interface configuration
+####################################################################
+- name: "find and register name for docker bridge for control plane {{ cp_n }}"
+  command: "docker network ls -fname=cp{{ cp_n }}_accel_network -q"
+  register: docker_br
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "check if {{ vxlan_iface }} exists"
+  command: "ip l show {{ vxlan_iface }}"
+  register: vxlan_iface_exists
+  ignore_errors: yes
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "create vxlan interface {{ vxlan_iface }}"
+  become: yes
+  command: "ip l add {{ vxlan_iface }} type vxlan id {{ vxlan_id }} dstport 4789 local {{ ansible_default_ipv4.address }} remote {{ lookup('dig', hostname_dataplane) }}"
+  when: vxlan_iface_exists is failed and (run_mode == "deploy" or run_mode == "clean_deploy")
+
+- name: "check if {{ veth_iface }} exists"
+  command: "ip l show {{ veth_iface }}"
+  register: veth_iface_exists
+  ignore_errors: yes
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "create veth interface {{ veth_iface }} with peer {{ veth_peer }}"
+  become: yes
+  command: "ip l add {{ veth_iface }} type veth peer name {{ veth_peer }}"
+  when: veth_iface_exists is failed and (run_mode == "deploy" or run_mode == "clean_deploy")
+
+- name: "check if {{ bridge_to_cps }} exists"
+  command: "ip l show {{ bridge_to_cps }}"
+  register: bridge_to_cps_exists
+  ignore_errors: yes
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "create bridge {{ bridge_to_cps }}"
+  become: yes
+  command: "brctl addbr {{ bridge_to_cps }}"
+  when: bridge_to_cps_exists is failed and (run_mode == "deploy" or run_mode == "clean_deploy")
+
+- name: "set {{ item }} up"
+  become: yes
+  command: "ip l set {{ item }} up"
+  with_items:
+    - "{{ vxlan_iface }}"
+    - "{{ veth_iface }}"
+    - "{{ veth_peer }}"
+    - "{{ bridge_to_cps }}"
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "check if {{ veth_iface }} is attached to br-{{ docker_br.stdout }}"
+  shell: "brctl show br-{{ docker_br.stdout }} | grep {{ 'veth_iface ' }}"
+  register: veth_iface_attached_to_bridge
+  ignore_errors: yes
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "attach {{ veth_iface }} to br-{{ docker_br.stdout }}"
+  become: yes
+  command: "brctl addif br-{{ docker_br.stdout }} {{ veth_iface }}"
+  when: veth_iface_attached_to_bridge is failed and (run_mode == "deploy" or run_mode == "clean_deploy")
+
+- name: "check if {{ veth_peer }} is attached to {{ bridge_to_cps }}"
+  shell: "brctl show {{ bridge_to_cps }} | grep {{ veth_peer }}"
+  register: veth_peer_attached_to_bridge
+  ignore_errors: yes
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "attach {{ veth_peer }} to {{ bridge_to_cps }}"
+  become: yes
+  command: "brctl addif {{ bridge_to_cps }} {{ veth_peer }}"
+  when: veth_peer_attached_to_bridge is failed and (run_mode == "deploy" or run_mode == "clean_deploy")
+
+- name: "check if {{ vxlan_iface }} is attached to {{ bridge_to_cps }}"
+  shell: "brctl show {{ bridge_to_cps }} | grep {{ vxlan_iface }}"
+  register: vxlan_iface_attached_to_bridge
+  ignore_errors: yes
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "attach {{ vxlan_iface }} to {{ bridge_to_cps }}"
+  become: yes
+  command: "brctl addif {{ bridge_to_cps }} {{ vxlan_iface }}"
+  when: vxlan_iface_attached_to_bridge is failed and (run_mode == "deploy" or run_mode == "clean_deploy")

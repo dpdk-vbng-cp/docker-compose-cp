@@ -1,6 +1,0 @@
-[submodule "docker-accel-ppp"]
-	path = docker-accel-ppp
-	url = https://github.com/dpdk-vbng-cp/docker-accel-ppp.git
-[submodule "bng-utils"]
-	path = bng-utils
-	url = https://github.com/dpdk-vbng-cp/bng-utils.git

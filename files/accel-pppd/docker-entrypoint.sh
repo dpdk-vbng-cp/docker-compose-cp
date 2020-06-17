@@ -4,9 +4,10 @@ set -e
 OUTER_PROTO=${OUTER_PROTO:-802.1ad}
 OUTER_TAG=${OUTER_TAG:-0}
 INNER_PROTO=${INNER_PROTO:-802.1Q}
-INNER_TAGS=${INNER_TAGS:-$(echo {{ interface_range }})}
+INNER_TAGS=${INNER_TAGS:-$(echo {2..4094})}
 IFACE=${IFACE:-eth0}
 CORES="$(grep -c ^processor /proc/cpuinfo)"
+MAC_ADDRESS=${MAC_ADDRESS:-0}
 
 create_vlan_interface () {
     iface=$1
@@ -17,6 +18,12 @@ create_vlan_interface () {
     ip link set $vlan_iface up
     echo "$vlan_iface"
 }
+
+if [ "$MAC_ADDRESS" != "0" ]; then # Set up mac address for IFACE
+    ip link set dev $IFACE down
+    ip link set dev $IFACE address $MAC_ADDRESS
+    ip link set dev $IFACE up
+fi
 
 if [[ $OUTER_TAG -eq 0 ]]; then # No outer tag
     # Only single VLAN tag, no stacking
@@ -40,4 +47,3 @@ fi
 
 # Run command from CMD
 exec "$@"
-

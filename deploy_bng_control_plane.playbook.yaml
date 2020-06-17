@@ -1,0 +1,27 @@
+---
+- hosts: all
+  vars:
+    run_mode: "deploy"
+    setup_docker: "no"
+    setup_redis: "yes"
+    setup_pfcp_cp: "no"
+    setup_accel_pppd: "yes"
+
+
+  tasks:
+  - name: "Set up docker environment"
+    include_tasks: setup_docker_env_tasks.yaml
+    when: setup_docker == "yes"
+
+    # This is done to avoid the next task to loop necessarily over the cp_instances variable
+  - name: "Define accel_pppd_instances list when setup_accel_pppd is true"
+    set_fact:
+      accel_pppd_instances: "{{ cp_instances }}"
+    when: setup_accel_pppd == "yes"
+
+  - name: "Run tasks for setting up radius and accel_ppp"
+    include_tasks: run_single_radius_accel-pppd_tasks_from_loop.yaml
+    # loop: "{{ cp_instances }}"
+    loop: "{{ accel_pppd_instances|default([]) }}"
+    loop_control:
+      loop_var: cp_instance

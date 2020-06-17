@@ -1,0 +1,58 @@
+---
+- name: add Docker’s official GPG key and adding the apt repo
+  become: yes
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: add official docker repository for bionic to apt sources
+  become: yes
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable
+
+- name: update apt cache and install required packages (including docker)
+  become: yes
+  apt:
+    update_cache: yes
+    name:
+    - apt-transport-https
+    - ca-certificates
+    - curl
+    - gnupg-agent
+    - software-properties-common
+    - virtualenv
+    - python3-setuptools
+    - aptitude
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - python3-pip
+    - bridge-utils
+    - linux-headers-generic
+    - build-essential
+
+- name: download and add docker-compose from github to /usr/bin
+  become: yes
+  get_url:
+    url: https://github.com/docker/compose/releases/download/1.24.1/docker-compose-Linux-x86_64
+    dest: /usr/bin/docker-compose
+    mode: 0755
+
+- name: install docker and docker-compose python modules
+  pip:
+    name:
+      - docker-compose
+      - docker
+    executable: pip3
+
+- name: "add the user {{ ansible_user_id }} to the group 'docker'"
+  become: yes
+  user:
+    name: "{{ ansible_user_id }}"
+    groups: docker
+    append: yes
+  register: docker_user_add
+
+- name: Reset ssh connection to allow user changes to affect 'current login user'
+  meta: reset_connection
+  when: docker_user_add changed
