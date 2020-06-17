@@ -23,4 +23,4 @@
   #### Run tasks from single_radius_accel-pppd_tasks.yaml to set up one
   #### accel-pppd + freeradius container
   ###########################################################################
-  - include_tasks: single_radius_accel-pppd_tasks.yaml
+  - include_tasks: setup_single_radius_accel-pppd_tasks.yaml

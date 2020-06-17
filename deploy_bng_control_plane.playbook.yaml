@@ -1,16 +1,18 @@
 ---
 - hosts: all
   vars:
+    host_interface: "{{ ansible_default_ipv4.interface }}"
     run_mode: "deploy"
+    setup_all: "no"
     setup_docker: "no"
     setup_redis: "yes"
     setup_pfcp_cp: "no"
-    setup_accel_pppd: "yes"
+    setup_accel_pppd: "no"
 
   tasks:
   - name: "Set up docker environment"
     include_tasks: setup_docker_env_tasks.yaml
-    when: setup_docker == "yes"
+    when: setup_all == "yes" or setup_docker == "yes"
 
   - name: "Remove docker internal network for inter-container communication"
     docker_network:
@@ -35,13 +37,17 @@
 
   - name: "Set up redis server container"
     include_tasks: setup_redis_tasks.yaml
-    when: setup_redis == "yes"
+    when: setup_all == "yes" or setup_redis == "yes"
+
+  - name: "Set up PFCP control plane"
+    include_tasks: setup_pfcp_cp_tasks.yaml
+    when: setup_all == "yes" or setup_pfcp_cp == "yes"
 
     # This is done to avoid the next task to loop necessarily over the cp_instances variable
   - name: "Define accel_pppd_instances list when setup_accel_pppd is true"
     set_fact:
       accel_pppd_instances: "{{ cp_instances }}"
-    when: setup_accel_pppd == "yes"
+    when: setup_all == "yes" or setup_accel_pppd == "yes"
 
   - name: "Run tasks for setting up radius and accel_ppp"
     include_tasks: run_single_radius_accel-pppd_tasks_from_loop.yaml
