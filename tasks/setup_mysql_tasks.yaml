@@ -1,0 +1,74 @@
+---
+########################################################
+#### MYSQL CLEANUP
+########################################################
+- name: "stop and remove mysql docker container"
+  docker_container:
+    state: absent
+    name: mysql
+  when: run_mode == "clean_deploy" or run_mode == "clean"
+
+- name: "clean up directory /etc/bng_cp/mysql/"
+  become: yes
+  file:
+    path: "/etc/bng_cp/mysql/"
+    state: absent
+  when: run_mode == "clean_deploy" or run_mode == "clean"
+
+########################################################
+#### MYSQL CONFIG FILES
+########################################################
+- name: "copy mysql files to /etc/bng_cp/mysql in host"
+  become: yes
+  copy:
+    src: "mysql/"
+    dest: "/etc/bng_cp/mysql/"
+    force: yes
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "Generate mysql users setup file create_users.sql"
+  become: yes
+  template:
+    src: mysql/create_users.j2
+    dest: "/etc/bng_cp/mysql/create_users.sql"
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "Generate initialization table entries for users, IP pool names, and clients to file populate_init_tables.sql"
+  become: yes
+  template:
+    src: mysql/populate_init_tables.j2
+    dest: "/etc/bng_cp/mysql/populate_init_tables.sql"
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "Create bng_cp subfolder for mysql data files"
+  become: yes
+  file:
+    path: "/etc/bng_cp/mysql/data/"
+    state: directory
+    mode: '0755'
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+########################################################
+#### MYSQL CONTAINER
+########################################################
+- name: "start mysql container"
+  docker_container:
+    name: mysql
+    image: "mysql:8.0.20"
+    #command: --innodb-buffer-pool-size=1G # # Database parameter tunning
+    command:
+    state: started
+    volumes:
+       - /etc/bng_cp/mysql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+       - /etc/bng_cp/mysql/ippool_schema.sql:/docker-entrypoint-initdb.d/02-ippool_schema.sql
+       - /etc/bng_cp/mysql/procedure.sql:/docker-entrypoint-initdb.d/03-ippool_procedure.sql
+       - /etc/bng_cp/mysql/create_users.sql:/docker-entrypoint-initdb.d/04-create_users.sql
+       - /etc/bng_cp/mysql/populate_init_tables.sql:/docker-entrypoint-initdb.d/05-populate_init_tables.sql
+       - /etc/bng_cp/radius_mysql_entries/entries.sql:/docker-entrypoint-initdb.d/06-populate_ippool.sql
+       - /etc/bng_cp/mysql/data/:/var/lib/mysql/
+    networks:
+      - name: "{{ docker_network_name }}"
+    env:
+      MYSQL_ROOT_PASSWORD: "{{ mysql_root_password }}"
+      MYSQL_DATABASE: "{{ mysql_database }}"
+  when: run_mode == "deploy" or run_mode == "clean_deploy"

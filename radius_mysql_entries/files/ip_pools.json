@@ -1,0 +1,6 @@
+{ "ip_pools" :
+    [
+        { "pool_name" : "pool_1", "start_ip" : "192.168.1.1", "end_ip" :"192.168.1.10"},
+        { "pool_name" : "pool_2", "start_ip" : "192.168.2.1", "end_ip" :"192.168.2.10"}
+    ]
+}

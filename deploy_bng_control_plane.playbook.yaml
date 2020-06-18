@@ -5,7 +5,9 @@
     run_mode: "deploy"
     setup_all: "no"
     setup_docker: "no"
-    setup_redis: "yes"
+    setup_redis: "no"
+    setup_mysql: "no"
+    setup_radius: "no"
     setup_pfcp_cp: "no"
     setup_accel_pppd: "no"
 
@@ -13,12 +15,6 @@
   - name: "Set up docker environment"
     include_tasks: tasks/setup_docker_env_tasks.yaml
     when: setup_all == "yes" or setup_docker == "yes"
-
-  - name: "Remove docker internal network for inter-container communication"
-    docker_network:
-      name: "{{ docker_network_name }}"
-      state: absent
-    when: run_mode == "clean" or run_mode == "clean_deploy"
 
   - name: "Create docker internal network for inter-container communication"
     docker_network:
@@ -35,6 +31,18 @@
       mode: '0755'
     when: run_mode == "deploy" or run_mode == "clean_deploy"
 
+  - name: "Create files to set up mysql table entries"
+    include_tasks: tasks/setup_radius_mysql_entries_tasks.yaml
+    when: setup_all == "yes" or setup_mysql == "yes"
+
+  - name: "Set up mysql container"
+    include_tasks: tasks/setup_mysql_tasks.yaml
+    when: setup_all == "yes" or setup_mysql == "yes"
+
+  - name: "Set up freeradius container"
+    include_tasks: tasks/setup_radius_tasks.yaml
+    when: setup_all == "yes" or setup_radius == "yes"
+
   - name: "Set up redis server container"
     include_tasks: tasks/setup_redis_tasks.yaml
     when: setup_all == "yes" or setup_redis == "yes"
@@ -49,9 +57,8 @@
       accel_pppd_instances: "{{ cp_instances }}"
     when: setup_all == "yes" or setup_accel_pppd == "yes"
 
-  - name: "Run tasks for setting up radius and accel_ppp"
-    include_tasks: tasks/run_single_radius_accel-pppd_tasks_from_loop.yaml
-    # loop: "{{ cp_instances }}"
+  - name: "Run tasks for setting up accel_ppp"
+    include_tasks: tasks/run_accel-pppd_tasks_from_loop.yaml
     loop: "{{ accel_pppd_instances|default([]) }}"
     loop_control:
       loop_var: cp_instance

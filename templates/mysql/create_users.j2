@@ -1,0 +1,29 @@
+#  -*- text -*-
+##
+## admin.sql -- MySQL commands for creating the RADIUS user.
+##
+##	WARNING: You should change 'localhost' and 'radpass'
+##		 to something else.  Also update raddb/mods-available/sql
+##		 with the new RADIUS password.
+##
+##	$Id: e42c0d69204e4d984e939a4278339ae0cee7412a $
+
+#
+#  Create default administrator for RADIUS
+#
+CREATE USER '{{ radius_mysql_user }}'@'{{ radius_ip }}' IDENTIFIED BY '{{ radius_mysql_password }}';
+
+# The server can read any table in SQL
+GRANT SELECT ON radius.* TO '{{ radius_mysql_user }}'@'{{ radius_ip }}';
+
+# The server can write to the accounting and post-auth logging table.
+#
+#  i.e.
+GRANT ALL on radius.radacct TO '{{ radius_mysql_user }}'@'{{ radius_ip }}';
+GRANT ALL on radius.radpostauth TO '{{ radius_mysql_user }}'@'{{ radius_ip }}';
+
+GRANT ALL on radius.radippool TO '{{ radius_mysql_user }}'@'{{ radius_ip }}';
+
+GRANT ALL on radius.radcheck TO '{{ radius_mysql_user }}'@'{{ radius_ip }}';
+
+GRANT EXECUTE ON PROCEDURE radius.fr_allocate_previous_or_new_framedipaddress TO '{{ radius_mysql_user }}'@'{{ radius_ip }}';

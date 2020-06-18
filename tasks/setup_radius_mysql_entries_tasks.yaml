@@ -1,0 +1,30 @@
+---
+- name: "clean up directory /etc/bng_cp/radius_mysql_entries/"
+  become: yes
+  file:
+    path: "/etc/bng_cp/radius_mysql_entries/"
+    state: absent
+  when: run_mode == "clean_deploy" or run_mode == "clean"
+
+- name: "Create bng_cp subfolder for radius mysql table entry files"
+  become: yes
+  file:
+    path: "/etc/bng_cp/radius_mysql_entries/"
+    state: directory
+    mode: '0755'
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "Generate table entries for users and IP pool names to file populate_tables.sql"
+  become: yes
+  template:
+    src: radius_mysql_entries/ip_pools.j2
+    dest: "/etc/bng_cp/radius_mysql_entries/ip_pools.json"
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "run python container to generate table entries for mysql database"
+  docker_container:
+    name: radius_mysql_entries
+    image: "bisdn/radius_mysql_entries"
+    volumes:
+      - /etc/bng_cp/radius_mysql_entries/:/usr/src/app/files/
+  when: run_mode == "deploy" or run_mode == "clean_deploy"

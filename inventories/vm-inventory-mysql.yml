@@ -1,8 +1,7 @@
 ---
 all:
   hosts:
-    podwhale2.lab.bisdn.de:
-      hostname_dataplane: "podwhale4.lab.bisdn.de"
+    p4rt-test-2:
   vars:
     run_mode: "deploy"
     ansible_python_interpreter: "/usr/bin/python3"

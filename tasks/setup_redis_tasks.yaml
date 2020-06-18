@@ -1,18 +1,42 @@
 ---
-- name: "copy redis.conf to /etc/bng_cp/redis.conf in host"
-  become: yes
-  copy:
-    src: "redis/redis.conf"
-    dest: "/etc/bng_cp/"
-    force: yes
-  when: run_mode == "deploy" or run_mode == "clean_deploy"
-
+########################################################
+#### REDIS CLEANUP
+########################################################
 - name: "stop and remove redis docker container for bngc control plane"
   docker_container:
     state: absent
     name: redis
   when: run_mode == "clean_deploy" or run_mode == "clean"
 
+- name: "clean up directory /etc/bng_cp/redis/"
+  become: yes
+  file:
+    path: "/etc/bng_cp/redis/"
+    state: absent
+  when: run_mode == "clean_deploy" or run_mode == "clean"
+
+########################################################
+#### REDIS CONFIGURATION FILES
+########################################################
+- name: "Create bng_cp subfolder for redis files"
+  become: yes
+  file:
+    path: "/etc/bng_cp/redis/"
+    state: directory
+    mode: '0755'
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "copy redis.conf to /etc/bng_cp/redis/redis.conf in host"
+  become: yes
+  copy:
+    src: "redis/redis.conf"
+    dest: "/etc/bng_cp/redis/"
+    force: yes
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+########################################################
+#### REDIS CONTAINER
+########################################################
 - name: "start containerized redis with docker for all control plane"
   docker_container:
     name: redis
@@ -21,7 +45,7 @@
     ports: "{{ redis_port }}:{{ redis_port }}"
     state: started
     volumes:
-      - /etc/bng_cp/redis.conf:/usr/local/etc/redis/redis.conf
+      - /etc/bng_cp/redis/redis.conf:/usr/local/etc/redis/redis.conf
     networks:
       - name: "{{ docker_network_name }}"
   when: run_mode == "deploy" or run_mode == "clean_deploy"

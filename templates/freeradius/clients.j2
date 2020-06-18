@@ -1,0 +1,13 @@
+# Template used to generate NAS client list, in alternative to read them from NAS table
+client test-client {
+    ipaddr = 127.0.0.1
+    secret = SECRET
+}
+
+{% for cp_instance in cp_instances %}
+client accel-ppp-{{ cp_instance.cp_n }} {
+    ipaddr = {{ cp_instance.accel_ppp_ip }}
+    secret = SECRET
+}
+
+{% endfor %}

@@ -1,4 +1,23 @@
 ---
+########################################################
+#### PFCP BNG CP CLEANUP
+########################################################
+- name: "stop and remove PFCP BNG CP docker container"
+  docker_container:
+    state: absent
+    name: "pfcp-bng-cp"
+  when: run_mode == "clean_deploy" or run_mode == "clean"
+
+- name: "clean up file /etc/bng_cp/bngc.json"
+  become: yes
+  file:
+    path: "/etc/bng_cp/bngc.json"
+    state: absent
+  when: run_mode == "clean_deploy" or run_mode == "clean"
+
+########################################################
+#### PFCP BNG CP CONFIGURATION FILE
+########################################################
 - name: "generate bngc.json config for PFCP control plane application"
   become: yes
   template:
@@ -6,16 +25,14 @@
     dest: "/etc/bng_cp/bngc.json"
   when: run_mode == "deploy" or run_mode == "clean_deploy"
 
-- name: "stop and remove PFCP BNG CP docker container"
-  docker_container:
-    state: absent
-    name: "pfcp-bng-cp"
-  when: run_mode == "clean_deploy" or run_mode == "clean"
-
+########################################################
+#### PFCP BNG CP CONTAINER
+########################################################
 - name: "Start PFCP BNG CP application container"
   docker_container:
     name: "pfcp-bng-cp"
     image: "bisdn/pfcp-bng-cp"
+    restart_policy: "always"
     network_mode: host
     capabilities:
       - "SYS_NICE"

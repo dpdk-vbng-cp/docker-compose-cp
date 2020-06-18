@@ -1,0 +1,82 @@
+---
+########################################################
+#### FREERADIUS CLEANUP
+########################################################
+- name: "stop and remove freeradius docker container"
+  docker_container:
+    state: absent
+    name: freeradius
+  when: run_mode == "clean_deploy" or run_mode == "clean"
+
+- name: "clean up directory /etc/bng_cp/freeradius/"
+  become: yes
+  file:
+    path: "/etc/bng_cp/freeradius/"
+    state: absent
+  when: run_mode == "clean_deploy" or run_mode == "clean"
+
+########################################################
+#### FREERADIUS CONFIG FILES
+########################################################
+- name: "copy freeradius files to /etc/bng_cp/freeradius in host"
+  become: yes
+  copy:
+    src: "freeradius/"
+    dest: "/etc/bng_cp/freeradius/"
+    force: yes
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+##### Three tasks below and commented to use SQL database instead
+# - name: "Assign ip pool for allocating ip addresses to clients in radius"
+#   become: yes
+#   template:
+#     src: freeradius/ippool.j2
+#     dest: "/etc/bng_cp/freeradius/ippool"
+#   when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+# - name: "Generate authorized users filtered by nas_identifier in radius"
+#   become: yes
+#   template:
+#     src: freeradius/authorize.j2
+#     dest: "/etc/bng_cp/freeradius/authorize"
+#   when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+# - name: "generate clients.conf for radius authentication for control plane"
+#   become: yes
+#   template:
+#     src: freeradius/clients.j2
+#     dest: "/etc/bng_cp/freeradius/clients.conf"
+#   when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+- name: "generate sql for mysql plugin configuration in freeradius"
+  become: yes
+  template:
+    src: freeradius/sql.j2
+    dest: "/etc/bng_cp/freeradius/sql"
+  when: run_mode == "deploy" or run_mode == "clean_deploy"
+
+########################################################
+#### START FREERADIUS CONTAINER
+########################################################
+- name: "Start freeradius container"
+  docker_container:
+    name: "freeradius"
+    image: "freeradius/freeradius-server:3.0.21"
+    networks:
+      - name: "{{ docker_network_name }}"
+        ipv4_address: "{{ radius_ip }}"
+    restart_policy: "always"
+    volumes:
+      ##### Three volumes below are commented to use a SQL database instead
+      #- "/etc/bng_cp/freeradius/authorize:/etc/raddb/mods-config/files/authorize:Z"
+      #- "/etc/bng_cp/freeradius/ippool:/etc/raddb/mods-available/ippool:Z"
+      #- "/etc/bng_cp/freeradius/clients.conf:/etc/raddb/clients.conf:Z"
+
+      - "/etc/bng_cp/freeradius/radiusd.conf:/etc/raddb/radiusd.conf:Z"
+      - "/etc/bng_cp/freeradius/sites-available/default:/etc/raddb/sites-available/default:Z"
+
+      - "/etc/bng_cp/freeradius/sql:/etc/raddb/mods-enabled/sql:Z"
+      - "/etc/bng_cp/freeradius/mods-enabled/sqlippool:/etc/raddb/mods-enabled/sqlippool:Z"
+      - "/etc/bng_cp/freeradius/mods-config/sql/ippool/mysql/queries.conf:/etc/raddb/mods-config/sql/ippool/mysql/queries.conf:Z"
+    command: -X
+  when: run_mode == "deploy" or run_mode == "clean_deploy"

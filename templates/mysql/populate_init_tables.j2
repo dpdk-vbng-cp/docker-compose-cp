@@ -1,0 +1,12 @@
+# Create default user "testing"
+INSERT INTO radcheck (username, attribute, op, value) VALUES ('testing', 'Cleartext-Password', ':=', 'password');
+
+# Create nas client list with accel-pppd ip addresses
+{% for cp_instance in cp_instances %}
+INSERT INTO nas(nasname, shortname, server, secret) VALUES ('{{ cp_instance.accel_ppp_ip }}', 'accel-ppp-{{ cp_instance.cp_n }}', NULL, 'SECRET');
+{% endfor %}
+
+# Create mapping of nas_identifer to ip pool names
+{% for cp_instance in cp_instances %}
+INSERT INTO nas_pool_name(nasidentifier, pool_name) VALUES ('{{ cp_instance.nas_identifier }}', 'pool_{{ cp_instance.cp_n }}');
+{% endfor %}

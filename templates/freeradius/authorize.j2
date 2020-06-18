@@ -1,0 +1,5 @@
+# File used to authenticate users and assign the respective IP pool based on the nas identifier.
+# Not used anymore (replaced by SQL database)
+{% for cp_instance in cp_instances %}
+testing     NAS-Identifier == "{{ cp_instance.nas_identifier }}", Cleartext-Password := "password",   MS-CHAP-Use-NTLM-Auth := 0,   Pool-Name := "pool_{{ cp_instance.cp_n }}"
+{% endfor %}

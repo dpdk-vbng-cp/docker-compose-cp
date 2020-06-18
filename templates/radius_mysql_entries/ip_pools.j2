@@ -1,0 +1,9 @@
+{ "ip_pools" :
+    [
+{% for cp_instance in cp_instances %}
+        { "pool_name" : "pool_{{ cp_instance.cp_n }}", "start_ip" : "{{ cp_instance.ip_range_start }}", "end_ip" :"{{ cp_instance.ip_range_end }}" }
+{%- if not loop.last %},{% endif %}
+
+{% endfor %}
+    ]
+}

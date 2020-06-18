@@ -1,0 +1,16 @@
+# Template used to generate ip pools, as an alternative to sqlippool
+{% for cp_instance in cp_instances %}
+ippool pool_{{ cp_instance.cp_n }} {
+        filename = ${db_dir}/db.ippool{{ cp_instance.cp_n }}
+        ip_index = ${db_dir}/db.ippool{{ cp_instance.cp_n }}index
+
+        range_start = {{ cp_instance.ip_range_start }}
+        range_stop = {{ cp_instance.ip_range_end }}
+
+        netmask = 255.255.240.0
+
+        cache_size = 4096
+        key = "%{NAS-IP-Address} %{NAS-Port}"
+}
+
+{% endfor %}

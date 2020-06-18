@@ -3,11 +3,8 @@
     set_fact:
       cp_n: "{{ cp_instance.cp_n }}"
       cp_dir: "/etc/bng_cp/{{ cp_instance.cp_n }}"
-      ip_range_start: "{{ cp_instance.ip_range_start }}"
-      ip_range_end: "{{ cp_instance.ip_range_end }}"
       accel_ppp_ip: "{{ cp_instance.accel_ppp_ip }}"
       nas_identifier: "{{ cp_instance.nas_identifier }}"
-      radius_ip: "{{ cp_instance.radius_ip }}"
       telnet_port: "{{ cp_instance.telnet_port }}"
       tcp_port: "{{ cp_instance.tcp_port }}"
       ip_subnet_accel_network: "{{ cp_instance.ip_subnet_accel_network }}"
@@ -23,4 +20,4 @@
   #### Run tasks from single_radius_accel-pppd_tasks.yaml to set up one
   #### accel-pppd + freeradius container
   ###########################################################################
-  - include_tasks: setup_single_radius_accel-pppd_tasks.yaml
+  - include_tasks: setup_accel_ppp_tasks.yaml

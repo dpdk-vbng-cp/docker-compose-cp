@@ -40,7 +40,7 @@ listen {
 }
 
 authorize {
-	
+
 	filter_username
 	preprocess
 	chap
@@ -51,7 +51,13 @@ authorize {
 		ok = return
 	}
 
-	files
+	#files
+	sql
+
+	update control {
+		MS-CHAP-Use-NTLM-Auth := No
+	}
+
 	-ldap
 	expiration
 	logintime
@@ -87,8 +93,26 @@ preacct {
 accounting {
 	detail
 	unix
+	# Log traffic to an SQL database.
+	sql
 	#  Return an address to the IP Pool when we see a stop record.
-	main_pool
+	sqlippool
+	#pool_1 # Uncomment pool_1 to pool_16 to enable reading ip pools from files
+	#pool_2
+	#pool_3
+	#pool_4
+	#pool_5
+	#pool_6
+	#pool_7
+	#pool_8
+	#pool_9
+	#pool_10
+	#pool_11
+	#pool_12
+	#pool_13
+	#pool_14
+	#pool_15
+	#pool_16
 	exec
 	attr_filter.accounting_response
 }
@@ -105,12 +129,35 @@ post-auth {
 	update {
 		&reply: += &session-state:
 	}
+	#  After authenticating the user, do another SQL query.
+	sql
+
+	# Assign pool name based on NAS-Identifier
+	update control {
+   		Pool-Name := "%{sql: SELECT pool_name FROM nas_pool_name WHERE nasidentifier='%{NAS-Identifier}'}"
+	}
 
 	#  Get an address from the IP Pool.
-	main_pool
+	sqlippool
+	#pool_1
+	#pool_2
+	#pool_3
+	#pool_4
+	#pool_5
+	#pool_6
+	#pool_7
+	#pool_8
+	#pool_9
+	#pool_10
+	#pool_11
+	#pool_12
+	#pool_13
+	#pool_14
+	#pool_15
+	#pool_16
 	exec
 	remove_reply_message_if_eap
-	
+
 	Post-Auth-Type REJECT {
 		attr_filter.access_reject
 		eap
@@ -123,7 +170,7 @@ post-auth {
 }
 
 pre-proxy {
-	
+
 }
 
 post-proxy {

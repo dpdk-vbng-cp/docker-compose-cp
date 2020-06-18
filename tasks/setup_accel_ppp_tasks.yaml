@@ -2,13 +2,10 @@
 ####################################################################
 #### Cleanup
 ####################################################################
-- name: "stop and remove freeradius and accel-pppd container {{ cp_n }}"
+- name: "stop and remove accel-pppd container {{ cp_n }}"
   docker_container:
     state: absent
-    name: "{{ item }}-{{ cp_n }}"
-  loop:
-    - "accel-pppd"
-    - "freeradius"
+    name: "accel-pppd-{{ cp_n }}"
   when: run_mode == "clean_deploy" or run_mode == "clean"
 
 - name: "clean up directory {{ cp_dir }}"
@@ -24,44 +21,15 @@
     state: absent
   when: run_mode == "clean_deploy" or run_mode == "clean"
 
-
 ####################################################################
 #### cp config directory creation
 ####################################################################
-- name: "Create bng_cp subfolders for accel-pppd/freeradius files"
+- name: "Create bng_cp subfolder for accel-pppd files"
   become: yes
   file:
-    path: "{{ cp_dir }}/{{ item }}"
+    path: "{{ cp_dir }}/accel-pppd"
     state: directory
     mode: '0755'
-  loop:
-    - "accel-pppd"
-    - "freeradius"
-  when: run_mode == "deploy" or run_mode == "clean_deploy"
-
-####################################################################
-#### radius configuration files
-####################################################################
-- name: "copy freeradius/ to {{ cp_dir }}/freeradius/ in host"
-  become: yes
-  copy:
-    src: "freeradius/"
-    dest: "{{ cp_dir }}/freeradius/"
-    force: yes
-  when: run_mode == "deploy" or run_mode == "clean_deploy"
-
-- name: "Assign ip pool for allocating ip addresses to clients in radius: {{ cp_n }}"
-  become: yes
-  template:
-    src: ippool.j2
-    dest: "{{ cp_dir }}/freeradius/ippool"
-  when: run_mode == "deploy" or run_mode == "clean_deploy"
-
-- name: "generate clients.conf for radius authentication for control plane: {{ cp_n }}"
-  become: yes
-  template:
-    src: clients.j2
-    dest: "{{ cp_dir }}/freeradius/clients.conf"
   when: run_mode == "deploy" or run_mode == "clean_deploy"
 
 ####################################################################
@@ -70,7 +38,7 @@
 - name: "generate accel-ppp.conf config for control plane: {{ cp_n }}"
   become: yes
   template:
-    src: accel-ppp.j2
+    src: accel-pppd/accel-ppp.j2
     dest: "{{ cp_dir }}/accel-pppd/accel-ppp.conf"
   when: run_mode == "deploy" or run_mode == "clean_deploy"
 
@@ -108,7 +76,6 @@
       - name: "{{ docker_network_name }}"
         ipv4_address: "{{ accel_ppp_ip }}"
       - name: "cp{{ cp_n }}_accel_network"
-   # mac_address: "{{ mac_dl }}"
     volumes:
       - /sbin/modprobe:/sbin/modprobe
       - "{{ cp_dir }}/accel-pppd/accel-ppp.conf:/etc/accel-ppp.conf"
@@ -122,22 +89,6 @@
     exposed_ports:
       - "{{ telnet_port }}/tcp"
       - "{{ tcp_port }}/tcp"
-  when: run_mode == "deploy" or run_mode == "clean_deploy"
-
-- name: "Start freeradius-{{ cp_n }} container for CP {{ cp_n }}"
-  docker_container:
-    name: "freeradius-{{ cp_n }}"
-    image: "freeradius/freeradius-server"
-    networks:
-      - name: "{{ docker_network_name }}"
-        ipv4_address: "{{ radius_ip }}"
-    volumes:
-      - "{{ cp_dir }}/freeradius/clients.conf:/etc/raddb/clients.conf:Z"
-      - "{{ cp_dir }}/freeradius/mods-config/files/authorize:/etc/raddb/mods-config/files/authorize:Z"
-      - "{{ cp_dir }}/freeradius/radiusd.conf:/etc/raddb/radiusd.conf:Z"
-      - "{{ cp_dir }}/freeradius/ippool:/etc/raddb/mods-available/ippool:Z"
-      - "{{ cp_dir }}/freeradius/sites-available/default:/etc/raddb/sites-available/default:Z"
-    command: -X
   when: run_mode == "deploy" or run_mode == "clean_deploy"
 
 ####################################################################
