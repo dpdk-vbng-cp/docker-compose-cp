@@ -21,9 +21,14 @@ GRANT SELECT ON radius.* TO '{{ radius_mysql_user }}'@'{{ radius_ip }}';
 #  i.e.
 GRANT ALL on radius.radacct TO '{{ radius_mysql_user }}'@'{{ radius_ip }}';
 GRANT ALL on radius.radpostauth TO '{{ radius_mysql_user }}'@'{{ radius_ip }}';
-
 GRANT ALL on radius.radippool TO '{{ radius_mysql_user }}'@'{{ radius_ip }}';
-
 GRANT ALL on radius.radcheck TO '{{ radius_mysql_user }}'@'{{ radius_ip }}';
 
 GRANT EXECUTE ON PROCEDURE radius.fr_allocate_previous_or_new_framedipaddress TO '{{ radius_mysql_user }}'@'{{ radius_ip }}';
+
+# Create user for REST server and grant read/write permissions to the radcheck, radacct, and radippool tables
+CREATE USER '{{ rest_server_user }}'@'{{ rest_server_ip }}' IDENTIFIED BY '{{ rest_server_password }}';
+GRANT SELECT on radius.radcheck TO '{{ rest_server_user }}'@'{{ rest_server_ip }}';
+GRANT SELECT on radius.radacct TO '{{ rest_server_user }}'@'{{ rest_server_ip }}';
+GRANT SELECT on radius.radippool TO '{{ rest_server_user }}'@'{{ rest_server_ip }}';
+GRANT SELECT on radius.nas_pool_name TO '{{ rest_server_user }}'@'{{ rest_server_ip }}';

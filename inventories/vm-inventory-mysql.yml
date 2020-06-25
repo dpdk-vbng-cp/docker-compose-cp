@@ -19,6 +19,11 @@ all:
     radius_mysql_password: "radius-secret-password"
     radius_ip: "172.240.0.100"
 
+    # MYSQL REST Server configurations
+    rest_server_user: "rest"
+    rest_server_password: "rest-secret-password"
+    rest_server_ip: "172.240.0.101"
+
     # PFCP BNG control plane configurations
     redis_host: localhost
     redis_port: 6379

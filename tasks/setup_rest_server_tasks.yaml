@@ -1,0 +1,23 @@
+---
+########################################################
+#### REST SERVER CLEANUP
+########################################################
+- name: "stop and remove rest server container"
+  docker_container:
+    state: absent
+    name: rest_server
+  when: run_mode == "clean_deploy" or run_mode == "clean"
+
+########################################################
+#### REST SERVER STARTUP
+########################################################
+- name: "run rest server that connects to the mysql database"
+  docker_container:
+    name: rest_server
+    image: "bisdn/mysql_rest_server"
+    ports:
+      - "8080:8080"
+    networks:
+      - name: "{{ docker_network_name }}"
+        ipv4_address: "{{ rest_server_ip }}"
+  when: run_mode == "deploy" or run_mode == "clean_deploy"

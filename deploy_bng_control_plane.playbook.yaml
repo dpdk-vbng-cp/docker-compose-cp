@@ -7,6 +7,7 @@
     setup_docker: "no"
     setup_redis: "no"
     setup_mysql: "no"
+    setup_rest: "no"
     setup_radius: "no"
     setup_pfcp_cp: "no"
     setup_accel_pppd: "no"
@@ -38,6 +39,10 @@
   - name: "Set up mysql container"
     include_tasks: tasks/setup_mysql_tasks.yaml
     when: setup_all == "yes" or setup_mysql == "yes"
+
+  - name: "Set up rest server"
+    include_tasks: tasks/setup_rest_server_tasks.yaml
+    when: setup_all == "yes" or setup_rest == "yes"
 
   - name: "Set up freeradius container"
     include_tasks: tasks/setup_radius_tasks.yaml
