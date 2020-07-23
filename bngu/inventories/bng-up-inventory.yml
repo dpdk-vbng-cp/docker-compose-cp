@@ -17,143 +17,175 @@ all:
         bngu_ip_addr: "192.168.10.101"
         upstream_dpdk_port: 8110
         downstream_dpdk_port: 8102
-        gateway_mac_address: "aa:bb:cc:dd:ee:1a"
-        gateway_ip_address: "211.1.0.1"
-        downstream_mac_address: "00:00:00:01:00:01"
+        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
+        bng_core_mac_address: "00:00:01:01:00:01"
+        upstream_route_ip_address: "211.1.0.1"
+        upstream_route_mac_address: "00:00:00:01:00:00"
+        downstream_route_mac_address: "00:00:00:01:00:01"
 
       # 2
       - container_name: "pfcp-bng-up-2"
         bngu_ip_addr: "192.168.10.102"
         upstream_dpdk_port: 8111
         downstream_dpdk_port: 8103
-        gateway_mac_address: "aa:bb:cc:dd:ee:1b"
-        gateway_ip_address: "211.2.0.1"
-        downstream_mac_address: "00:00:00:01:01:01"
+        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
+        bng_core_mac_address: "00:00:01:01:00:01"
+        upstream_route_ip_address: "211.1.0.1"
+        upstream_route_mac_address: "00:00:00:01:00:00"
+        downstream_route_mac_address: "00:00:00:01:00:01"
 
       # 3
       - container_name: "pfcp-bng-up-3"
         bngu_ip_addr: "192.168.10.103"
         upstream_dpdk_port: 8112
         downstream_dpdk_port: 8104
-        gateway_mac_address: "aa:bb:cc:dd:ee:2a"
-        gateway_ip_address: "212.1.0.1"
-        downstream_mac_address: "00:00:00:01:02:01"
+        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
+        bng_core_mac_address: "00:00:01:01:00:01"
+        upstream_route_ip_address: "211.1.0.1"
+        upstream_route_mac_address: "00:00:00:01:00:00"
+        downstream_route_mac_address: "00:00:00:01:00:01"
 
       # 4
       - container_name: "pfcp-bng-up-4"
         bngu_ip_addr: "192.168.10.104"
         upstream_dpdk_port: 8113
         downstream_dpdk_port: 8105
-        gateway_mac_address: "aa:bb:cc:dd:ee:2b"
-        gateway_ip_address: "212.2.0.1"
-        downstream_mac_address: "00:00:00:01:03:01"
+        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
+        bng_core_mac_address: "00:00:01:01:00:01"
+        upstream_route_ip_address: "211.1.0.1"
+        upstream_route_mac_address: "00:00:00:01:00:00"
+        downstream_route_mac_address: "00:00:00:01:00:01"
 
       # 5
       - container_name: "pfcp-bng-up-5"
         bngu_ip_addr: "192.168.10.105"
         upstream_dpdk_port: 8114
         downstream_dpdk_port: 8106
-        gateway_mac_address: "aa:bb:cc:dd:ee:3a"
-        gateway_ip_address: "213.1.0.1"
-        downstream_mac_address: "00:00:00:01:04:01"
+        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
+        bng_core_mac_address: "00:00:01:01:00:01"
+        upstream_route_ip_address: "211.1.0.1"
+        upstream_route_mac_address: "00:00:00:01:00:00"
+        downstream_route_mac_address: "00:00:00:01:00:01"
 
       # 6
       - container_name: "pfcp-bng-up-6"
         bngu_ip_addr: "192.168.10.106"
         upstream_dpdk_port: 8115
         downstream_dpdk_port: 8107
-        gateway_mac_address: "aa:bb:cc:dd:ee:3b"
-        gateway_ip_address: "213.2.0.1"
-        downstream_mac_address: "00:00:00:01:05:01"
+        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
+        bng_core_mac_address: "00:00:01:01:00:01"
+        upstream_route_ip_address: "211.1.0.1"
+        upstream_route_mac_address: "00:00:00:01:00:00"
+        downstream_route_mac_address: "00:00:00:01:00:01"
 
       # 7
       - container_name: "pfcp-bng-up-7"
         bngu_ip_addr: "192.168.10.107"
         upstream_dpdk_port: 8116
         downstream_dpdk_port: 8108
-        gateway_mac_address: "aa:bb:cc:dd:ee:4a"
-        gateway_ip_address: "214.1.0.1"
-        downstream_mac_address: "00:00:00:01:06:01"
+        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
+        bng_core_mac_address: "00:00:01:01:00:01"
+        upstream_route_ip_address: "211.1.0.1"
+        upstream_route_mac_address: "00:00:00:01:00:00"
+        downstream_route_mac_address: "00:00:00:01:00:01"
 
       # 8
       - container_name: "pfcp-bng-up-8"
         bngu_ip_addr: "192.168.10.108"
         upstream_dpdk_port: 8117
         downstream_dpdk_port: 8109
-        gateway_mac_address: "aa:bb:cc:dd:ee:4b"
-        gateway_ip_address: "214.2.0.1"
-        downstream_mac_address: "00:00:00:01:07:01"
+        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
+        bng_core_mac_address: "00:00:01:01:00:01"
+        upstream_route_ip_address: "211.1.0.1"
+        upstream_route_mac_address: "00:00:00:01:00:00"
+        downstream_route_mac_address: "00:00:00:01:00:01"
 
       # 9
       - container_name: "pfcp-bng-up-9"
         bngu_ip_addr: "192.168.10.109"
         upstream_dpdk_port: 8094
         downstream_dpdk_port: 8086
-        gateway_mac_address: "aa:bb:cc:dd:ee:5a"
-        gateway_ip_address: "215.1.0.1"
-        downstream_mac_address: "00:00:00:01:08:01"
+        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
+        bng_core_mac_address: "00:00:01:01:00:01"
+        upstream_route_ip_address: "211.1.0.1"
+        upstream_route_mac_address: "00:00:00:01:00:00"
+        downstream_route_mac_address: "00:00:00:01:00:01"
 
       # 10
       - container_name: "pfcp-bng-up-10"
         bngu_ip_addr: "192.168.10.110"
         upstream_dpdk_port: 8095
         downstream_dpdk_port: 8087
-        gateway_mac_address: "aa:bb:cc:dd:ee:5b"
-        gateway_ip_address: "215.2.0.1"
-        downstream_mac_address: "00:00:00:01:09:01"
+        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
+        bng_core_mac_address: "00:00:01:01:00:01"
+        upstream_route_ip_address: "211.1.0.1"
+        upstream_route_mac_address: "00:00:00:01:00:00"
+        downstream_route_mac_address: "00:00:00:01:00:01"
 
       # 11
       - container_name: "pfcp-bng-up-11"
         bngu_ip_addr: "192.168.10.111"
         upstream_dpdk_port: 8096
         downstream_dpdk_port: 8088
-        gateway_mac_address: "aa:bb:cc:dd:ee:6a"
-        gateway_ip_address: "216.1.0.1"
-        downstream_mac_address: "00:00:00:01:0A:01"
+        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
+        bng_core_mac_address: "00:00:01:01:00:01"
+        upstream_route_ip_address: "211.1.0.1"
+        upstream_route_mac_address: "00:00:00:01:00:00"
+        downstream_route_mac_address: "00:00:00:01:00:01"
 
       # 12
       - container_name: "pfcp-bng-up-12"
         bngu_ip_addr: "192.168.10.112"
         upstream_dpdk_port: 8097
         downstream_dpdk_port: 8089
-        gateway_mac_address: "aa:bb:cc:dd:ee:6b"
-        gateway_ip_address: "216.2.0.1"
-        downstream_mac_address: "00:00:00:01:0B:01"
+        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
+        bng_core_mac_address: "00:00:01:01:00:01"
+        upstream_route_ip_address: "211.1.0.1"
+        upstream_route_mac_address: "00:00:00:01:00:00"
+        downstream_route_mac_address: "00:00:00:01:00:01"
 
       # 13
       - container_name: "pfcp-bng-up-13"
         bngu_ip_addr: "192.168.10.113"
         upstream_dpdk_port: 8098
         downstream_dpdk_port: 8090
-        gateway_mac_address: "aa:bb:cc:dd:ee:7a"
-        gateway_ip_address: "217.1.0.1"
-        downstream_mac_address: "00:00:00:01:0C:01"
+        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
+        bng_core_mac_address: "00:00:01:01:00:01"
+        upstream_route_ip_address: "211.1.0.1"
+        upstream_route_mac_address: "00:00:00:01:00:00"
+        downstream_route_mac_address: "00:00:00:01:00:01"
 
       # 14
       - container_name: "pfcp-bng-up-14"
         bngu_ip_addr: "192.168.10.114"
         upstream_dpdk_port: 8099
         downstream_dpdk_port: 8091
-        gateway_mac_address: "aa:bb:cc:dd:ee:7b"
-        gateway_ip_address: "217.2.0.1"
-        downstream_mac_address: "00:00:00:01:0D:01"
+        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
+        bng_core_mac_address: "00:00:01:01:00:01"
+        upstream_route_ip_address: "211.1.0.1"
+        upstream_route_mac_address: "00:00:00:01:00:00"
+        downstream_route_mac_address: "00:00:00:01:00:01"
 
       # 15
       - container_name: "pfcp-bng-up-15"
         bngu_ip_addr: "192.168.10.115"
         upstream_dpdk_port: 8100
         downstream_dpdk_port: 8092
-        gateway_mac_address: "aa:bb:cc:dd:ee:8a"
-        gateway_ip_address: "218.1.0.1"
-        downstream_mac_address: "00:00:00:01:0E:01"
+        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
+        bng_core_mac_address: "00:00:01:01:00:01"
+        upstream_route_ip_address: "211.1.0.1"
+        upstream_route_mac_address: "00:00:00:01:00:00"
+        downstream_route_mac_address: "00:00:00:01:00:01"
 
       # 16
       - container_name: "pfcp-bng-up-16"
         bngu_ip_addr: "192.168.10.116"
         upstream_dpdk_port: 8101
         downstream_dpdk_port: 8093
-        gateway_mac_address: "aa:bb:cc:dd:ee:8b"
-        gateway_ip_address: "218.2.0.1"
-        downstream_mac_address: "00:00:00:01:0F:01"
+        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
+        bng_core_mac_address: "00:00:01:01:00:01"
+        upstream_route_ip_address: "211.1.0.1"
+        upstream_route_mac_address: "00:00:00:01:00:00"
+        downstream_route_mac_address: "00:00:00:01:00:01"
 
 
