@@ -1,7 +1,7 @@
 ---
 all:
   hosts:
-    p4rt-test-2:
+    dell-per730.lab.bisdn.de:
   vars:
     run_mode: "deploy"
     ansible_python_interpreter: "/usr/bin/python3"
@@ -32,48 +32,6 @@ all:
       bngu2:
         bngu_ip: "192.168.10.102"
         nas_id: "nas2"
-      bngu3:
-        bngu_ip: "192.168.10.103"
-        nas_id: "nas3"
-      bngu4:
-        bngu_ip: "192.168.10.104"
-        nas_id: "nas4"
-      bngu5:
-        bngu_ip: "192.168.10.105"
-        nas_id: "nas5"
-      bngu6:
-        bngu_ip: "192.168.10.106"
-        nas_id: "nas6"
-      bngu7:
-        bngu_ip: "192.168.10.107"
-        nas_id: "nas7"
-      bngu8:
-        bngu_ip: "192.168.10.108"
-        nas_id: "nas8"
-      bngu9:
-        bngu_ip: "192.168.10.109"
-        nas_id: "nas9"
-      bngu10:
-        bngu_ip: "192.168.10.110"
-        nas_id: "nas10"
-      bngu11:
-        bngu_ip: "192.168.10.111"
-        nas_id: "nas11"
-      bngu12:
-        bngu_ip: "192.168.10.112"
-        nas_id: "nas12"
-      bngu13:
-        bngu_ip: "192.168.10.113"
-        nas_id: "nas13"
-      bngu14:
-        bngu_ip: "192.168.10.114"
-        nas_id: "nas14"
-      bngu15:
-        bngu_ip: "192.168.10.115"
-        nas_id: "nas15"
-      bngu16:
-        bngu_ip: "192.168.10.116"
-        nas_id: "nas16"
 
     # Configurations for accel-pppd/radius instances
     cp_instances:
@@ -88,7 +46,7 @@ all:
         tcp_port: 2001
         vxlan_id: 100
         vxlan_iface: vxlan100
-        outer_tag: "701"
+        outer_tag: "50"
         veth_iface: veth0
         veth_peer: veth1
         bridge_to_cps: br0
@@ -104,233 +62,8 @@ all:
         tcp_port: 4001
         vxlan_id: 100
         vxlan_iface: vxlan100
-        outer_tag: "801"
+        outer_tag: "60"
         veth_iface: veth2
         veth_peer: veth3
         bridge_to_cps: br0
-
-      - cp_n: 3
-        accel_ppp_ip: "172.240.3.1"
-        nas_identifier: "nas3"
-        mac_dl: "00:00:00:01:02:00"
-        ip_subnet_accel_network: 172.60.0.0/16
-        ip_range_start: "192.51.32.2"
-        ip_range_end: "192.51.47.254"
-        telnet_port: 6000
-        tcp_port: 6001
-        vxlan_id: 200
-        vxlan_iface: vxlan200
-        outer_tag: "702"
-        veth_iface: veth4
-        veth_peer: veth5
-        bridge_to_cps: br1
-
-      - cp_n: 4
-        accel_ppp_ip: "172.240.4.1"
-        nas_identifier: "nas4"
-        mac_dl: "00:00:00:01:03:00"
-        ip_subnet_accel_network: 172.70.0.0/16
-        ip_range_start: "192.51.48.2"
-        ip_range_end: "192.51.63.254"
-        telnet_port: 8000
-        tcp_port: 8001
-        vxlan_id: 200
-        vxlan_iface: vxlan200
-        outer_tag: "802"
-        veth_iface: veth6
-        veth_peer: veth7
-        bridge_to_cps: br1
-
-      - cp_n: 5
-        accel_ppp_ip: "172.240.5.1"
-        nas_identifier: "nas5"
-        mac_dl: "00:00:00:01:04:00"
-        ip_subnet_accel_network: 172.80.0.0/16
-        ip_range_start: "192.51.64.2"
-        ip_range_end: "192.51.79.254"
-        telnet_port: 10000
-        tcp_port: 10001
-        vxlan_id: 300
-        vxlan_iface: vxlan300
-        outer_tag: "703"
-        veth_iface: veth8
-        veth_peer: veth9
-        bridge_to_cps: br2
-
-      - cp_n: 6
-        accel_ppp_ip: "172.240.6.1"
-        nas_identifier: "nas6"
-        mac_dl: "00:00:00:01:05:00"
-        ip_subnet_accel_network: 172.90.0.0/16
-        ip_range_start: "192.51.80.2"
-        ip_range_end: "192.51.95.254"
-        telnet_port: 12000
-        tcp_port: 12001
-        vxlan_id: 300
-        vxlan_iface: vxlan300
-        outer_tag: "803"
-        veth_iface: veth10
-        veth_peer: veth11
-        bridge_to_cps: br2
-
-
-      - cp_n: 7
-        accel_ppp_ip: "172.240.7.1"
-        nas_identifier: "nas7"
-        mac_dl: "00:00:00:01:06:00"
-        ip_subnet_accel_network: 172.100.0.0/16
-        ip_range_start: "192.51.96.2"
-        ip_range_end: "192.51.111.254"
-        telnet_port: 14000
-        tcp_port: 14001
-        vxlan_id: 400
-        vxlan_iface: vxlan400
-        outer_tag: "704"
-        veth_iface: veth12
-        veth_peer: veth13
-        bridge_to_cps: br3
-
-      - cp_n: 8
-        accel_ppp_ip: "172.240.8.1"
-        nas_identifier: "nas8"
-        mac_dl: "00:00:00:01:07:00"
-        ip_subnet_accel_network: 172.110.0.0/16
-        ip_range_start: "192.51.112.2"
-        ip_range_end: "192.51.127.254"
-        telnet_port: 16000
-        tcp_port: 16001
-        vxlan_id: 400
-        vxlan_iface: vxlan400
-        outer_tag: "804"
-        veth_iface: veth14
-        veth_peer: veth15
-        bridge_to_cps: br3
-
-      - cp_n: 9
-        accel_ppp_ip: "172.240.9.1"
-        nas_identifier: "nas9"
-        mac_dl: "00:00:00:01:08:00"
-        ip_subnet_accel_network: 172.120.0.0/16
-        ip_range_start: "192.51.128.2"
-        ip_range_end: "192.51.143.254"
-        telnet_port: 18000
-        tcp_port: 18001
-        vxlan_id: 500
-        vxlan_iface: vxlan500
-        outer_tag: "705"
-        veth_iface: veth16
-        veth_peer: veth17
-        bridge_to_cps: br4
-
-      - cp_n: 10
-        accel_ppp_ip: "172.240.10.1"
-        nas_identifier: "nas10"
-        mac_dl: "00:00:00:01:09:00"
-        ip_subnet_accel_network: 172.130.0.0/16
-        ip_range_start: "192.51.144.2"
-        ip_range_end: "192.51.159.253"
-        telnet_port: 20000
-        tcp_port: 20001
-        vxlan_id: 500
-        vxlan_iface: vxlan500
-        outer_tag: "805"
-        veth_iface: veth18
-        veth_peer: veth19
-        bridge_to_cps: br4
-
-      - cp_n: 11
-        accel_ppp_ip: "172.240.11.1"
-        nas_identifier: "nas11"
-        mac_dl: "00:00:00:01:0A:00"
-        ip_subnet_accel_network: 172.140.0.0/16
-        ip_range_start: "192.51.160.2"
-        ip_range_end: "192.51.175.254"
-        telnet_port: 22000
-        tcp_port: 22001
-        vxlan_id: 600
-        vxlan_iface: vxlan600
-        outer_tag: "706"
-        veth_iface: veth20
-        veth_peer: veth21
-        bridge_to_cps: br5
-
-      - cp_n: 12
-        accel_ppp_ip: "172.240.12.1"
-        nas_identifier: "nas12"
-        mac_dl: "00:00:00:01:0B:00"
-        ip_subnet_accel_network: 172.150.0.0/16
-        ip_range_start: "192.51.176.2"
-        ip_range_end: "192.51.192.254"
-        telnet_port: 24000
-        tcp_port: 24001
-        vxlan_id: 600
-        vxlan_iface: vxlan600
-        outer_tag: "806"
-        veth_iface: veth22
-        veth_peer: veth23
-        bridge_to_cps: br5
-
-      - cp_n: 13
-        accel_ppp_ip: "172.240.13.1"
-        nas_identifier: "nas13"
-        mac_dl: "00:00:00:01:0C:00"
-        ip_subnet_accel_network: 172.160.0.0/16
-        ip_range_start: "192.51.193.2"
-        ip_range_end: "192.51.208.254"
-        telnet_port: 26000
-        tcp_port: 26001
-        vxlan_id: 700
-        vxlan_iface: vxlan700
-        outer_tag: "707"
-        veth_iface: veth24
-        veth_peer: veth25
-        bridge_to_cps: br6
-
-      - cp_n: 14
-        accel_ppp_ip: "172.240.14.1"
-        nas_identifier: "nas14"
-        mac_dl: "00:00:00:01:0D:00"
-        ip_subnet_accel_network: 172.170.0.0/16
-        ip_range_start: "192.51.209.2"
-        ip_range_end: "192.51.224.254"
-        telnet_port: 28000
-        tcp_port: 28001
-        vxlan_id: 700
-        vxlan_iface: vxlan700
-        outer_tag: "807"
-        veth_iface: veth26
-        veth_peer: veth27
-        bridge_to_cps: br6
-
-      - cp_n: 15
-        accel_ppp_ip: "172.240.15.1"
-        nas_identifier: "nas15"
-        mac_dl: "00:00:00:01:0E:00"
-        ip_subnet_accel_network: 172.180.0.0/16
-        ip_range_start: "192.51.225.2"
-        ip_range_end: "192.51.240.254"
-        telnet_port: 30000
-        tcp_port: 30001
-        vxlan_id: 800
-        vxlan_iface: vxlan800
-        outer_tag: "708"
-        veth_iface: veth28
-        veth_peer: veth29
-        bridge_to_cps: br7
-
-      - cp_n: 16
-        accel_ppp_ip: "172.240.16.1"
-        nas_identifier: "nas16"
-        mac_dl: "00:00:00:01:0F:00"
-        ip_subnet_accel_network: 172.190.0.0/16
-        ip_range_start: "192.51.241.2"
-        ip_range_end: "192.51.255.254"
-        telnet_port: 32000
-        tcp_port: 32001
-        vxlan_id: 800
-        vxlan_iface: vxlan800
-        outer_tag: "808"
-        veth_iface: veth30
-        veth_peer: veth31
-        bridge_to_cps: br7
 
