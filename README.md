@@ -191,7 +191,11 @@ To see the debug output of the dpdk-ip-pipeline CLI installing forwarding rules 
 docker logs -f dockercomposecp_dpdk-ip-pipeline-cli_1
 ```
 
-To be continued...
+## NOTE: The README will be updated soon. For now below are the commands
+
+```
+ansible-playbook -vv -i inventories/vm-inventory-mysql.yml deploy_bng_control_plane.playbook.yaml -u ubuntu -l dell-per730.lab.bisdn.de -e setup_all=yes -e run_mode=clean_deploy
+```
 
 # Helpful links:
 
