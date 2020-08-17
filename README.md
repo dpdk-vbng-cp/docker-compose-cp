@@ -3,35 +3,41 @@
 Docker compose creates the control plane docker environment:
 
 ```
-                              +--------+-----------+    +------------------+
-                              |                    |    |                  |
-                              |     accel-ppp      |----+     Radius       |
-                              |                    |    |                  |
-                              +--------+-----------+    +------------------+
+                            
+			      +--------+-----------+      +------------------+
+                              |                    |      |                  |
+                              |     accel-ppp      |<---->+     Radius       |
+                              |                    |      |                  |
+                              +--------+-----------+      +------------------+
                                        |
                                        |
+				       |	
                               +--------+-----------+
                               |                    |
-                              |    redis pub/sub   |
+                              |    redis server    |
                               |                    |
                               +--------+-----------+
-                                       |
+                                       |Forwarding 
+				       |Entries
                                        |
                                +-------+------------+
                                |                    |
-                               |dpdk-ip-pipeline-cli|
+                               |   redis client     |
                                |                    |
                                +--------+-----------+
                                         |
-                                  +-----+--------+
-                                  |              |
-                       +----------+-----+   +----+-----------+    
-                       | telnet_uplink  |   | telnet_downlink|
-                       +----------------+   +----------------+     
+                                  +-----+
+                                  |              
+  +-------+-----+      +-------+--------+        +----+-----------+    
+  | bngu-pfcp   |----->|    bngc-pfcp   |<------>|   bngc-app     |
+  |             |<-----|                |        |                |
+  +-------+-----+      +----------------+        +----------------+ 
+				
+    
 ```
 ## Dependencies
 
-Currently the control plane is installed on Ubuntu via ansible.
+Currently the control plane for the COB setup is installed in Ubuntu via ansible.
 To get started with ansible, please follow the official documentation:
 - https://docs.ansible.com/ansible/latest/user_guide/intro_getting_started.html
 
@@ -89,12 +95,34 @@ six==1.12.0
 
 ## Ansible deployment
 
-The ansible playbook in this repository will install all needed components
-(including docker, docker-compose, redis and so on) on your target machine and
-also apply the proper network configuration to them. To fit the deployment to
+The ansible playbook in this branch of the repository will install all needed components
+(including docker, docker-compose, redis and so on) on your target machine for the control
+plane and also apply the proper network configuration to them. To fit the deployment to
 your environment, you need to create and adapt the ansible inventory file
-(instruction on that are below) and add  control plane specific variable files
-with unique names to the `control-plane-configs` folder.
+(instruction on that are below) and add control plane specific variable files
+with unique names to the inventories directory folder `vm-inventory-mysql.yml` file.
+
+### Writing specific control plane specific container configs
+
+To allow each control plane to connect to its target data plane deployment, you
+need to specify multiple environment specific values for each control plane you
+are deploying. Although multiple control planes can be deployed on the same
+host, each of them might need a different configuration.In this branch the 
+`vm-inventory-mysql.yml` file creates two control planes with
+two accel-ppp containers, one redis, one radius and one PFCP containers. The 
+radius container reads from a sql database for authenitication and authorization 
+and also distributes IP addresses to the user from the database. 
+
+### Writing specific data plane specific PFCPU container configs
+
+This branch also deploys PFCPU containers in the data plane. The
+PFCPU containers are responsible to communicate with the DPDK-pipeline
+to write the forwarding rules in the BNG-VFS. The BNGU folder has its own 
+inventory which targets to the data plane. The file `bng-2-up-inventory.yml`
+has the values from the dataplane configs. If you have different port numbers,
+mac addresses etc. for your dataplane then you have to update this file 
+with the right numbers. Right now we have only two BNG's running in the 
+data plane so we create two different PFCPU containers to communicate with them. 
 
 ### Running docker on your target machine behind a proxy
 
@@ -123,17 +151,6 @@ For more information on how to work with ansible inventories, please read the
 official documentation provided here:
 - https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html
 
-### Writing specific control plane configs
-
-To allow each control plane to connect to its target data plane deployment, you
-need to specify multiple environment specific values for each control plane you
-are deploying. Although multiple control planes can be deployed on the same
-host, each of them might need a different configuration. This repo contains two
-example files `cp1.yml` and `cp2.yml` in the `control-plane-configs` folder,
-that can be used to derive the configuration you need for your deployment. The
-name of the file will be used during the ansible-playbook run in the variable
-`cp_name` to identify which control plane should be deployed.
-
 ### Running the ansible playbook
 
 Before running the ansible playbook as described below, make sure you have the
@@ -142,8 +159,14 @@ known_hosts file (the ansible ssh connections will fail otherwise).
 To run the ansible playbook after you followed all the steps above, just
 execute the below command on your local machine:
 
+#### Control Plane
 ```
-ansible-playbook -i inventory deploy_control_plane.playbook.yaml -k -u ubuntu -l server3 -e cp_name=cp1
+ansible-playbook -vv -i inventories/vm-inventory-mysql.yml deploy_bng_control_plane.playbook.yaml -u ubuntu -l <target CP hostname> -e setup_all=yes {-e run_mode=clean_deploy (if clean up and redeploying)}
+```
+#### Data plane PFCPU
+
+```
+ansible-playbook -vv -i inventories/bng-2-up-inventory.yml deploy_bngu_containers.playbook.yaml -u ubuntu -l <Target dataplane>
 ```
 
 - `-i inventory`: specifies the inventory file that contains all the target
@@ -168,33 +191,12 @@ https://docs.ansible.com/ansible/latest/user_guide/intro_getting_started.html
 NOTE:: This ansible_playbook also creates a vxlan interface to connect the
 control plane and the data plane after all the docker containers are created.
 
-### Cleaning up and redeploying
-
-If you did major changes (especially to the docker-compose containers) you might
-want to clean up the docker images, folders and containers to get a fresh
-deployment without caching or any other strange artifacts in it. The ansible
-playbook can be used to do this by providing the variable
-"run_mode=clean_deploy" during the execution. An example command to clean up and
-redeploy everything related to the control plane with the cp_name=cp1 would look
-like this:
-
-```
-ansible-playbook -i inventory deploy_control_plane.playbook.yaml -k -u ubuntu -l server3 -e cp_name=cp1 -e run_mode=clean_deploy
-```
- 
-
 ### Helpful commands for debugging
 
 To see the debug output of the dpdk-ip-pipeline CLI installing forwarding rules in the UL_VF and the DL_VF:
 
 ```
-docker logs -f dockercomposecp_dpdk-ip-pipeline-cli_1
-```
-
-## NOTE: The README will be updated soon. For now below are the commands
-
-```
-ansible-playbook -vv -i inventories/vm-inventory-mysql.yml deploy_bng_control_plane.playbook.yaml -u ubuntu -l dell-per730.lab.bisdn.de -e setup_all=yes -e run_mode=clean_deploy
+docker logs -f <container name>
 ```
 
 # Helpful links:

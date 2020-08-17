@@ -5,7 +5,7 @@ all:
   vars:
     run_mode: "deploy"
     ansible_python_interpreter: "/usr/bin/python3"
-    dpdk_host: "localhost"
+    dpdk_host: "dell-per630.lab.bisdn.de"
     upstream_dpdk_host: "{{ dpdk_host }}"
     downstream_dpdk_host: "{{ dpdk_host }}"
     bngc_ip_addr: "192.168.10.100"
@@ -17,20 +17,16 @@ all:
         bngu_ip_addr: "192.168.10.101"
         upstream_dpdk_port: 8110
         downstream_dpdk_port: 8102
-        bng_access_mac_address: "aa:bb:cc:dd:ee:1a"
-        bng_core_mac_address: "00:00:01:01:00:01"
-        upstream_route_ip_address: "211.1.0.1"
-        upstream_route_mac_address: "00:00:00:01:00:00"
-        downstream_route_mac_address: "00:00:00:01:00:01"
+        gateway_mac_address: "aa:bb:cc:dd:ee:1a"
+        gateway_ip_address: "211.1.0.1"
+        downstream_mac_address: "00:00:00:01:00:01"
 
       # 2
       - container_name: "pfcp-bng-up-2"
         bngu_ip_addr: "192.168.10.102"
         upstream_dpdk_port: 8111
         downstream_dpdk_port: 8103
-        bng_access_mac_address: "aa:bb:cc:dd:ee:1b"
-        bng_core_mac_address: "00:00:01:01:00:01"
-        upstream_route_ip_address: "211.2.0.1"
-        upstream_route_mac_address: "00:00:00:01:00:00"
-        downstream_route_mac_address: "00:00:00:01:00:01"
+        gateway_mac_address: "aa:bb:cc:dd:ee:1b"
+        gateway_ip_address: "211.2.0.1"
+        downstream_mac_address: "00:00:00:01:01:01"
 
