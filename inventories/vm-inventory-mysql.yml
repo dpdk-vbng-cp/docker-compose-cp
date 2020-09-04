@@ -40,6 +40,7 @@ all:
         nas_identifier: "nas1"
         mac_dl: "00:00:00:01:00:00"
         ip_subnet_accel_network: 172.40.0.0/16
+        gateway_ip: "192.51.0.1"
         ip_range_start: "192.51.0.2"
         ip_range_end: "192.51.15.254"
         telnet_port: 2000
@@ -56,6 +57,7 @@ all:
         nas_identifier: "nas2"
         mac_dl: "00:00:00:01:01:00"
         ip_subnet_accel_network: 172.50.0.0/16
+        gateway_ip: "192.51.16.1"
         ip_range_start: "192.51.16.2"
         ip_range_end: "192.51.31.254"
         telnet_port: 4000
