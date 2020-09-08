@@ -1,4 +1,4 @@
-# Control plane setup
+# BNG for Central Office in a Box (COB) setup
 
 Docker compose creates the control plane docker environment:
 
@@ -35,11 +35,23 @@ Docker compose creates the control plane docker environment:
 				
     
 ```
-## Dependencies
+
+## Prerequisites
+
+### Server requirements
+
+The Control-plane is deployed in multiple docker containers. While Docker is supported 
+in multiple OS architectures, we recommend using a Linux distribution in the host where 
+the Control-plane is deployed. In addition, the target host must have a SSH server 
+running and at least one user that can be remotely accessed through SSH with super user privileges.
+
+The following instructions for the PON Portal installation were tested on a server 
+running [Ubuntu Server 20.04.1 LTS](https://releases.ubuntu.com/20.04/).
+
+### Local requirements
 
 Currently the control plane for the COB setup is installed in Ubuntu via ansible.
-To get started with ansible, please follow the official documentation:
-- https://docs.ansible.com/ansible/latest/user_guide/intro_getting_started.html
+To get started with ansible, please follow [the official documentation](https://docs.ansible.com/ansible/latest/user_guide/intro_getting_started.html).
 
 Apart from a basic understanding of ansible, you should have a working
 environment with:
@@ -49,21 +61,18 @@ environment with:
 * python3-venv
 * ansible (instructions on how to install are below)
 
-## Prerequisites
+#### Install ansible on your local machine
 
-### Install ansible on your local machine
-
-You need to install the ansible python module on your local machine. There is no
-need to install ansible on the remote hosts or targets. To install the tested
-version of ansible, including all other needed python modules, please use a
-virtual environment and the requirements.txt provided in this repo. If you are
-running Ubuntu on your local machine and have `python3` and `python3-venv`
-already installed, you can run:
+You need to install the ansible python module on your local machine. There is no 
+need to install ansible on the remote hosts or targets (the only requirement for 
+these is a working python3 environment).
+We recommend using a virtual environment to install all required python dependencies. 
+After having python3 and python3-venv installed, a virtual environment can be created 
+with the following command:
 
 ```
 python3 -m venv my-virtualenv
 ```
-
 To active the the created virtualenv run:
 
 ```
@@ -93,114 +102,250 @@ PyYAML==5.1.2
 six==1.12.0
 ```
 
-## Ansible deployment
-
-The ansible playbook in this branch of the repository will install all needed components
-(including docker, docker-compose, redis and so on) on your target machine for the control
-plane and also apply the proper network configuration to them. To fit the deployment to
-your environment, you need to create and adapt the ansible inventory file
-(instruction on that are below) and add control plane specific variable files
-with unique names to the inventories directory folder `vm-inventory-mysql.yml` file.
-
-### Writing specific control plane specific container configs
-
-To allow each control plane to connect to its target data plane deployment, you
-need to specify multiple environment specific values for each control plane you
-are deploying. Although multiple control planes can be deployed on the same
-host, each of them might need a different configuration.In this branch the 
-`vm-inventory-mysql.yml` file creates two control planes with
-two accel-ppp containers, one redis, one radius and one PFCP containers. The 
-radius container reads from a sql database for authenitication and authorization 
-and also distributes IP addresses to the user from the database. 
-
-### Writing specific data plane specific PFCPU container configs
-
-This branch also deploys PFCPU containers in the data plane. The
-PFCPU containers are responsible to communicate with the DPDK-pipeline
-to write the forwarding rules in the BNG-VFS. The BNGU folder has its own 
-inventory which targets to the data plane. The file `bng-2-up-inventory.yml`
-has the values from the dataplane configs. If you have different port numbers,
-mac addresses etc. for your dataplane then you have to update this file 
-with the right numbers. Right now we have only two BNG's running in the 
-data plane so we create two different PFCPU containers to communicate with them. 
-
-### Running docker on your target machine behind a proxy
+#### Running docker on your target machine behind a proxy 
 
 If your target machine is running behind a proxy or does not have direct access
 to the internet and more specifically to the ubuntu apt repositories, you need
 to add this proxy also for docker. To allow docker running on the target machine
 to pull images from dockerhub (which we need to pull all the base images), you
-have to modify the docker service like documented here:
-- https://docs.docker.com/config/daemon/systemd/#httphttps-proxy
+have to modify the docker service like documented in the official 
+[docker proxy page](https://docs.docker.com/config/daemon/systemd/#httphttps-proxy).
+
 To allow docker containers to install new packages during runtime (which is
 needed to install the proper kernel header files to build kernel modules in our
 case) you also need to add your proxies for the docker client like documented
-here:
-- https://docs.docker.com/network/proxy/
+[docker network proxy documantation](https://docs.docker.com/network/proxy/).
 
-### Writing your inventory
+### Control Plane setup
 
-Add your target hosts, including some host specific variables to your inventory
-file. Please use the hostnames and not the ip addresses of your target system. 
-The deployment playbook is written in a way that ansible workstation will automatically
-resolve the ip address of your target systems. An example can be found inside of 
-this repository as `inventory.sample`. Please copy this file to `inventory` and 
-replace the names and variable values according to your environment.
+The Control plane for the Central Office in a Box (COB) setup contains the below 
+components running in docker containers:
 
-For more information on how to work with ansible inventories, please read the
-official documentation provided here:
-- https://docs.ansible.com/ansible/latest/user_guide/intro_inventory.html
+– One or multiple accel-ppp container
+– One Redis server in a container
+– One PFCP BNG CP in a container
+– One Radius server in a container
+– One mysql database in a container
 
-### Running the ansible playbook
+![BNG Control Plane](/home/taushif/vBNG_project/CP_BNG.png)
 
-Before running the ansible playbook as described below, make sure you have the
-correct host key fingerprint of your target machine added to your local
-known_hosts file (the ansible ssh connections will fail otherwise).
-To run the ansible playbook after you followed all the steps above, just
-execute the below command on your local machine:
+Whenever any of the ‘accel-ppp’ containers receive a PADI request from the client, 
+it communicates with the ‘Radius’ container for the user authentication and authorization. 
+The Radius server looks up for available IP addresses in the mysql database to assign 
+the IP address for the user. During the session establishment the messages are published 
+to the ‘Redis’ container, which are subscribed by the ‘PFCP BNG CP’ container. 
+The ‘PFCP BNG CP’ container has PFCP associations established with the ‘PFCP BNG UP’ 
+containers, which are running in the Data plane server. The ‘PFCP BNG CP’ container 
+forwards the command to write specific forwarding rules into the DPDK-BNG containers 
+running in the Data plane.
 
-#### Control Plane
+#### Ansible deployment
+
+The ansible playbook ‘deploy_bng_control_plane.playbook.yaml’, in this branch of the 
+repository, will install all needed components on your target machine for the 
+Control plane and also apply the proper network configuration to them. To fit 
+the deployment to your environment, you need to create and adapt the ansible 
+inventory file and add control plane specific variables with unique names and 
+its values to the ‘inventories’ directory. For our deployment we have 
+a `vm-inventory-mysql.yml` file inside the ‘inventories’ folder which deploys 
+all the required components. A brief description of the variables of the 
+inventory file in provided below:
+
+- hosts – the target control plane FQDN/IP address
+
+- vars:
+         – ‘run_mode’ can have three values ‘deploy’, ‘clean’, ‘clean deploy’. 
+‘deploy’ is set when the components of the Control plane are deployed for the first time. 
+To clean the old containers ‘run_mode = clean’ and to clean and restart all 
+the containers ‘run_mode=clean_deploy’
+	 – ‘mysql_root_password’ is the password to access the database
+         – ‘mysql_database’ is the name of the sql database
+ 	 – ‘radius_mysql_user’ is the name of the user that radius uses to authenticate with the mysql database
+	 – ‘radius_mysql_password’ is the password for the `radius_mysql_user` to access the database
+ 	 – ‘redis_host’ is the host where the redis server is running
+ 	 – ‘redis_port’ is the port where the redis server is listening for messages
+	 – ‘bngc_ip_addr’ is the IP address of the PFCP BNG CP container
+     	 – ‘net_prefix’ is the subnet of the IP address range
+	 – ‘bngu_endpoints’ provides the parameters to connect PFCP BNG CP to 
+different PFCP BNG UP containers running in the data plane:
+		- bngu_ip: IP address of the PFCP BNG UP instance
+		- nas_id: Unique NAS Identifier used by the respective accel-pppd instance in the control plane.
+
+- docker networks values – the different containers need to be accessible for each other. 
+We create a docker subnetwork for the communication between the docker containers. 
+This value should not be modified by the user, unless it conflicts with an existing 
+network in the control plane host.
+
+- CP instances – presently in the setup each of the ‘accel-ppp’ containers is responsible 
+and connected to each BNG (UL/DL pair) container. The MAC address of the ‘accel-ppp’ 
+container should be the same as the DPDK BNG UL MAC address. The ‘outer_tag’  
+here is of the interfaces the ‘accel-ppp’ container creates. In the present setup the 
+accel-ppp container is created with 4000 interfaces for the incoming double tagged traffic. 
+The ip range values are used to configure the radius IP pools that will be distributed 
+to the clients.
+
+There are three types of variables nested in “cp_instances”. Some variable values which 
+are aligned to the dataplane containers are fixed and cannot be modified. Those variables 
+are commented in the inventory file. Here in the README we have the other two types:
+
+	1. Can be modified:
+		- cp_n: is the accel-ppp instance number 
+		- accel_ppp_ip: is the ip address of the accel-ppp container.
+		- ip_subnet_accel_network: is the secondary docker network for the 
+different control plane components to communicate with each other. 
+		- ip_range_start: is the start of the ip_pool for assigning the 
+ip_addresses to the clients. The start value can take any private ip address values.
+		- ip_range_end: is the end of the ip_pool for the particular CP instance. 
+The recommended minimum value will be 4096 ip_addresses starting from the ‘ip_range_start’. 
+This is because one accel-ppp container is configured to handle 4096 clients that is 4096 
+ip_addresses. But the configuration of accel-ppp can be changed to a shorter support range, 
+which then concludes a shorter ip_address range.  
+		- vxlan_id: is the id of the vx-tunnel for the control traffic where this 
+particular CP instance communicates with the BNG. In our present setup one vxlan tunnel 
+serves two accel-ppp and two ip_pipeline container pairs. 		
+		- vxlan_iface: is the name of the vxlan tunnel 
+		- outer_tag: is the outer vlan id of the interfaces created inside 
+the accel-ppp container
+		- veth_iface: is the end of the veth_pair which connects to the docker 
+bridge. The veth_iface name can be renamed as any other name.
+		- veth_peer: is the other end of the veth pair which connects to the 
+linux bridge to the control plains. 
+		- bridge_to_cps: is the bridge which connects docker-bridge and the accel-ppp containers.
+
+	2. Recommended not to be modified:
+ 		- nas_identifier: is the identification values of different accel-ppp 
+containers and is aligned with one specific ip_pipeline container pair. 
+		
+NOTE: Before running the ansible playbook as described below, make sure you have the correct 
+host key fingerprint of your target machine added to your local known_hosts file (the ansible
+ssh connections will fail otherwise). 
+
+##### Initial control plane deployment
+
+To start the control plane for the first time on your target machine, please change directory 
+to ‘docker-compose-cp’ and execute the below command:
+
 ```
-ansible-playbook -vv -i inventories/vm-inventory-mysql.yml deploy_bng_control_plane.playbook.yaml -u ubuntu -l <target CP hostname> -e setup_all=yes {-e run_mode=clean_deploy (if clean up and redeploying)}
+ansible-playbook -i inventories/vm-inventory-mysql.yml deploy_bng_control_plane.playbook.yaml 
+-u ubuntu -e setup_all=yes -e run_mode=deploy
 ```
-#### Data plane PFCPU
-
-```
-ansible-playbook -vv -i inventories/bng-2-up-inventory.yml deploy_bngu_containers.playbook.yaml -u ubuntu -l <Target dataplane>
-```
-
+- `-e setup_all=yes`: With the value set to ‘yes’ all the containers (accel-ppp, Redis, Radius, 
+PFCP BNG CP, mysql) will be created and started. There are also variables like →  ‘setup_docker, 
+setup_redis, setup_mysql, setup_radius, setup_pfcp_cp, setup_accel_pppd’ where you can instantiate 
+individual containers by setting the value to ‘yes’
 - `-i inventory`: specifies the inventory file that contains all the target
   hosts and the environment specific variables
-- `deploy_control_plane.playbook.yaml`: is the name of the ansible playbook
+- `deploy_bng_control_plane.playbook.yaml`: is the name of the ansible playbook
   inside of this repo that will be executed
-- `-k`: will ask for a connection password in case you are not able to
-  authenticate with your ssh key to the remote server
 - `-u ubuntu`: will set the username that is used to login to the remote server
   to `ubuntu` (change this if you are using another user to access your server)
-- `-l server3`: will limit the ansible playbook run to the server `server3`
-  specified in your inventory file
-- `-e cp_name=cp1`: will define the unique name for your control plane that is
-  used to differentiate between multiple docker-compose based deployments on one
-  server. This name ("cp1") has to match the filename in the
-  `control-plane-configs` folder on your local server. This file defines
-  additional variables that are specific for each control plane.
+- `-e run_mode=deploy`: will fresh deploy the control plane with all its containers, bridges, vxlans required
 
-For more information on ansible please check the official documentation here:
-https://docs.ansible.com/ansible/latest/user_guide/intro_getting_started.html
+##### Cleanup environment variables
 
-NOTE:: This ansible_playbook also creates a vxlan interface to connect the
-control plane and the data plane after all the docker containers are created.
+An environment variable called run_mode can be used to instruct ansible to stop all containers 
+and exit, or to stop all containers before they are started. It's default value is set to deploy, 
+but it can be set to the following values:
 
-### Helpful commands for debugging
+- `-e run_mode=clean`: will clean the control plane and all its containers, bridges, vxlans
+- `-e run_mode=clean_deploy`: will first clean the old control plane and all its containers,
+bridges, vxlans and then deploy it freshly
 
-To see the debug output of the dpdk-ip-pipeline CLI installing forwarding rules in the UL_VF and the DL_VF:
+To restart the control plane and clean up the old containers execute the command below:
 
 ```
-docker logs -f <container name>
+ansible-playbook -i inventories/vm-inventory-mysql.yml deploy_bng_control_plane.playbook.yaml 
+-u ubuntu -e setup_all=yes -e run_mode=clean_deploy
 ```
 
-# Helpful links:
+### PFCP User Plane setup
 
-- https://docs.docker.com/get-started/
-- https://docs.docker.com/compose/gettingstarted/
+The PFCP application has the User Plane side (PFCP BNG UP) which communicates with 
+DPDK IP PIPELINE (The virtual BNG’s) and also has the association with the PFCP BNG CP. 
+PFCP BNG UP connects to the telnet counter part of the DPDK and forwards the commands to 
+write the packet forwarding rules inside the pipelines. Each UL/DL pair of BNG containers 
+connect to an individual PFCP BNG UP. Multiple PFCP BNG UP containers can run at the same 
+time and communicate with the single PFCP BNG CP in the control plane.
+
+![BNG PFCP User Plane](/home/taushif/vBNG_project/PFCP_USER_Plane.png)
+
+Before we start the PFCP BNG UP container the DPDK BNGS needs to be up and running. 
+Please follow the [DPDK BNG setup](https://gitlab.bisdn.de/ansible/ansible-vbng/-/tree/dell_630_configs) 
+repo readme to setup your BNG containers.
+
+#### Writing specific data plane specific PFCP BNG UP container configs
+
+The bngu folder has its own inventory files that are used to specify the data 
+plane configuration. The file `bng-2-up-inventory.yml` has the values from the 
+dataplane configs: 
+
+- hosts – the target data plane FQDN/IP address
+
+- vars:
+         – ‘run_mode’ can have three values ‘deploy’, ‘clean’, ‘clean deploy’. 
+‘deploy’ is set when the components of the Control plane are deployed for the first time. 
+To clean the old containers ‘run_mode = clean’ and to clean and restart all the containers 
+‘run_mode=clean_deploy’
+	 – ‘dpdk_host’ is the hostname of the dataplane
+         – ‘bngc_ip_addr’ is the IP address of the PFCP BNG CP container
+     	 – ‘net_prefix’ is the subnet prefix of the network used between the PFCP containers
+- up_instances’: contains the variable values for each PFCP BNG UP instance running in 
+the dataplane. Each instance is hooked to the ‘telnet’ counter part of the dpdk pipeline:
+- ‘container_name’ is the name of the PFCP BNG UP as there can be multiple PFCP BNG UP 
+containers talking to different BNG instances.
+         - ‘bngu_ip_addr’ is the ip address of PFCP BNG UP
+ 	 - ‘upstream_dpdk_port’ is the exposed port number from the telnet hook of the 
+DPDK Uplink container
+ 	 - ‘downstream_dpdk_port’ is the exposed port number from the telnet hook of 
+the DPDK Downlink container
+	 - ‘gateway_mac_address’ is the MAC address of the gateway to the CORE network/ Internet
+     	 - ‘gateway_ip_address’ is the IP address of the gateway to the CORE network/Internet
+	 - ‘downstream_mac_address’’ is the MAC address of the DPDK downlink container
+
+NOTE: Before running the ansible playbook as described below, make sure you have the
+correct host key fingerprint of your target machine added to your local known_hosts 
+file (the ansible ssh connections will fail otherwise). To run the ansible playbook 
+after you followed all the steps above, just execute the below command on your local machine:
+
+#### Data plane PFCP BNG UP
+
+To start the PFCP BNG UP containers for the first time on your target machine, please 
+change directory to ‘docker-compose-cp/bngu’ and execute the command below:
+
+##### Fresh deployment of PFCP BNG UP
+
+```
+ansible-playbook -i inventories/bng-2-up-inventory.yml deploy_bngu_containers.playbook.yaml
+ -u ubuntu -e run_mode=deploy
+```
+- `-i inventory`: specifies the inventory file that contains all the target
+  hosts and the environment specific variables
+- `deploy_bngu_containers.playbook.yaml`: is the name of the ansible playbook
+  inside of this repo that will be executed
+- `-u ubuntu`: will set the username that is used to login to the remote server
+  to `ubuntu` (change this if you are using another user to access your server)
+
+##### Cleanup environment variables
+
+An environment variable called run_mode can be used to instruct ansible to stop all 
+containers and exit, or to stop all containers before they are started. It's default 
+value is set to deploy, but it can be set to the following values:
+
+ - `-e run_mode=clean`: will clean the control plane and all its containers, bridges, vxlans
+ - `-e run_mode=clean_deploy`: will first clean the old control plane and all its containers, 
+bridges, vxlans and then deploy it freshly
+
+To restart the control plane and cleaning up the old containers execute the below command:
+
+```
+ansible-playbook -i inventories/bng-2-up-inventory.yml deploy_bngu_containers.playbook.yaml
+ -u ubuntu -e run_mode=clean_deploy
+```
+### Helpfull Links
+
+For more information on ansible please check the [Ansible Official documentation](
+https://docs.ansible.com/ansible/latest/user_guide/intro_getting_started.html)
+
+For more information on docker please check the [Docker Official documentation](
+https://docs.docker.com/get-started/)
 
