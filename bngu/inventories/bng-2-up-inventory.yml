@@ -18,7 +18,7 @@ all:
         upstream_dpdk_port: 8110
         downstream_dpdk_port: 8102
         gateway_mac_address: "aa:bb:cc:dd:ee:1a"
-        gateway_ip_address: "211.1.0.1"
+        gateway_ip_address: "192.51.0.1"
         downstream_mac_address: "00:00:00:01:00:01"
 
       # 2
@@ -27,6 +27,6 @@ all:
         upstream_dpdk_port: 8111
         downstream_dpdk_port: 8103
         gateway_mac_address: "aa:bb:cc:dd:ee:1b"
-        gateway_ip_address: "211.2.0.1"
+        gateway_ip_address: "192.51.16.1"
         downstream_mac_address: "00:00:00:01:01:01"
 
