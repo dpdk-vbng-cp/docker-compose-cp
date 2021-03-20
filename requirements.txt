@@ -3,7 +3,7 @@ asn1crypto==1.1.0
 cffi==1.13.0
 cryptography==2.7
 dnspython==1.16.0
-Jinja2==2.10.3
+Jinja2==2.11.3
 MarkupSafe==1.1.1
 pycparser==2.19
 PyYAML==5.1.2
