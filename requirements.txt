@@ -1,7 +1,7 @@
 ansible==4.2.0
 asn1crypto==1.1.0
 cffi==1.13.0
-cryptography==3.2
+cryptography==3.3.2
 dnspython==1.16.0
 Jinja2==2.11.3
 MarkupSafe==1.1.1
